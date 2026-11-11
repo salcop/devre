@@ -2278,4 +2278,332 @@ window.addEventListener('load',init);
 window.DBG={loadSlot:loadSlot,writeSlot:writeSlot,openSave:openSave,slowTrio:function(cb){var m=$('#mont');m.classList.add('on');var Lr=montLayers(m);slowTrio(Lr,ENG.pickMemories().fa,cb||function(){},function(){return false;});},get busy(){return busy;},pause:pause,resume:resume,setSpeed:function(s){speed=s;},runEvent:runEvent,flashback:flashback,nightScene:nightScene,ending:ending,updateDesk:function(){updateDesk();},chapter:chapter};
 })();
 </script>
+<script>/* ===== SOUND PATCH v1 · 장면별 효과음/배경음 교정 =====
+   - 장례·임종·유품·성묘: BGM을 조용한 추모 패드로, 결과 효과음(땡/팡파레)·타자음·'이의있음' 효과음 제거
+   - 병원·과로: 조용한 패드 + 심장박동, 결과음 최소화
+   - 아버지/가족/감동 장면: 따뜻한 피아노 BGM, 부드러운 결과음. 안 간 선택(missed)은 쓸쓸한 단음
+   - 사무실: 기존 효과음 유지하되, 감정 번호만 보고 울리던 '땡' 오판정 교정
+   - BGM을 휴대폰 스피커에서 들리는 음역(200~900Hz)으로 재작성, 장면 전환 시 크로스페이드
+   - 대사 속 전화/문/바람/목욕탕/우유/차 소리를 자동 삽입
+   index.html의 맨 마지막 script 태그 뒤(body 닫는 태그 바로 앞)에 넣으면 됩니다. */
+(function(){
+'use strict';
+var SND=window.SND, VN=window.VN, ENG=window.ENG;
+try{ if(!ENG) ENG=(0,eval)('ENG'); }catch(e){}
+if(!SND||!VN||!ENG||SND.__patched) return;
+SND.__patched=1;
+var _fx=SND.fx, _bgm=SND.bgm, _toggle=SND.toggle, _open=VN.open, _close=VN.close;
+var LOG=window.__SNDLOG=window.__SNDLOG||[];
+function log(k,v){LOG.push(k+':'+v);if(LOG.length>400)LOG.shift();}
+
+/* ---------- 오디오 출력 ---------- */
+var on=true, ctx=null, out=null, sfxBus=null, noiseBuf=null;
+function C(){
+  var c=null; try{c=SND.init();}catch(e){}
+  if(!c) return null;
+  if(c!==ctx){
+    ctx=c;
+    var comp=ctx.createDynamicsCompressor(); comp.threshold.value=-16; comp.ratio.value=3; comp.attack.value=0.01; comp.release.value=0.25;
+    out=ctx.createGain(); out.gain.value=0.9; out.connect(comp); comp.connect(ctx.destination);
+    sfxBus=ctx.createGain(); sfxBus.gain.value=0.8; sfxBus.connect(out);
+    var n=ctx.sampleRate*2; noiseBuf=ctx.createBuffer(1,n,ctx.sampleRate); var d=noiseBuf.getChannelData(0); for(var i=0;i<n;i++) d[i]=Math.random()*2-1;
+  }
+  if(ctx.state==='suspended') try{ctx.resume();}catch(e){}
+  return ctx;
+}
+function env(g,t,a,peak,d){g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(0.0001,t+d);}
+/* 전자피아노(기음+2배음): 휴대폰에서도 들리도록 220Hz 이상 위주 */
+function ep(bus,f,t,d,v){
+  var g=ctx.createGain(), o1=ctx.createOscillator(), o2=ctx.createOscillator(), g2=ctx.createGain();
+  o1.type='sine'; o1.frequency.value=f; o2.type='sine'; o2.frequency.value=f*2; g2.gain.value=0.25;
+  o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(bus);
+  g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(v,t+0.015); g.gain.exponentialRampToValueAtTime(v*0.3,t+Math.min(0.5,d*0.4)); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o1.start(t); o2.start(t); o1.stop(t+d+0.05); o2.stop(t+d+0.05);
+}
+/* 패드: 살짝 어긋난 삼각파 2개 + 저역통과, 느린 어택 */
+function pad(bus,f,t,d,v){
+  var lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1500; lp.connect(bus);
+  var g=ctx.createGain(); g.connect(lp);
+  [-4,4].forEach(function(c){var o=ctx.createOscillator();o.type='triangle';o.frequency.value=f;o.detune.value=c;o.connect(g);o.start(t);o.stop(t+d+0.1);});
+  g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(v,t+Math.min(1.2,d*0.35)); g.gain.setValueAtTime(v,t+d*0.7); g.gain.linearRampToValueAtTime(0.0001,t+d);
+}
+/* 베이스: 저음 + 2배음(폰 스피커에서는 2배음이 들림) */
+function bass(bus,f,t,d,v){
+  var g=ctx.createGain(); g.connect(bus);
+  var o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=f; o.connect(g);
+  var o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=f*2; var g2=ctx.createGain(); g2.gain.value=0.5; o2.connect(g2); g2.connect(g);
+  env(g,t,0.02,v,d); o.start(t); o2.start(t); o.stop(t+d+0.05); o2.stop(t+d+0.05);
+}
+function nz(bus,t,d,v,type,fq,q){
+  var s=ctx.createBufferSource(); s.buffer=noiseBuf; var f=ctx.createBiquadFilter(); f.type=type||'bandpass'; f.frequency.value=fq||1000; f.Q.value=q||0.7;
+  var g=ctx.createGain(); s.connect(f); f.connect(g); g.connect(bus); env(g,t,Math.min(0.01,d/3),v,d); s.start(t,Math.random()); s.stop(t+d+0.05);
+}
+function swellNoise(bus,t,d,v,fq){
+  var s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true; var f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=fq||500;
+  var g=ctx.createGain(); s.connect(f); f.connect(g); g.connect(bus);
+  g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(v,t+d*0.45); g.gain.linearRampToValueAtTime(0.0001,t+d); s.start(t); s.stop(t+d+0.1);
+}
+
+/* ---------- 배경음(BGM) ---------- */
+var N={A2:110,C3:130.8,D3:146.8,E3:164.8,F3:174.6,G3:196,A3:220,B3:246.9,C4:261.6,D4:293.7,E4:329.6,F4:349.2,G4:392,A4:440,B4:493.9,C5:523.3,D5:587.3,E5:659.3,F5:698.5,G5:784,A5:880,C6:1046.5,E6:1318.5,G6:1568,D6:1174.7};
+function ch(s){return s.split(' ').map(function(k){return N[k];});}
+var SONG={
+  /* 회사: 92bpm, 가벼운 컴핑 + 베이스 + 아주 작은 하이햇 */
+  office:{bar:60/92*4,lv:0.7,prog:[['F3','A3 C4 E4 F4'],['E3','G3 B3 D4 E4'],['D3','A3 C4 D4 F4'],['G3','G3 B3 D4 F4']],
+    mel:[[['E5',0],['D5',1],['C5',1.5]],[['B4',0],['C5',1],['D5',2]],[['C5',0],['A4',1]],[['B4',0],['D5',1.5]]],
+    play:function(b,t,i){var s=this,q=s.bar/4,p=s.prog[i%4],c=ch(p[1]);bass(b,N[p[0]],t,q*1.6,0.11);bass(b,N[p[0]],t+q*2,q*1.4,0.08);
+      [0,1.5,2.5].forEach(function(x){c.forEach(function(f){ep(b,f,t+x*q,q*1.1,0.05);});});
+      for(var k=0;k<8;k++) nz(b,t+k*q/2,0.04,k%2?0.012:0.02,'highpass',7000,0.7);
+      if(i%2===0){s.mel[(i/2)%4].forEach(function(n){ep(b,N[n[0]],t+n[1]*q,q*1.6,0.07);});}}},
+  /* 긴장: 80bpm, 단조, 낮은 맥박 */
+  tense:{bar:60/80*4,lv:0.6,prog:[['A2','A3 C4 E4'],['F3','A3 C4 F4'],['D3','A3 D4 F4'],['E3','G3 B3 E4']],
+    play:function(b,t,i){var q=this.bar/4,p=this.prog[i%4];for(var k=0;k<8;k++)bass(b,N[p[0]]*(p[0]==='A2'?2:1),t+k*q/2,q*0.4,k%2?0.07:0.11);
+      ch(p[1]).forEach(function(f){pad(b,f,t,this_bar(q),0.03);pad(b,f*2,t,this_bar(q),0.02);});if(i%2)ep(b,N.E5,t+q*3,q*1.5,0.04);}},
+  /* 밤 사무실/생각: 70bpm, 로즈풍 */
+  night:{bar:60/70*4,lv:0.8,prog:['A3 C4 E4 G4 B4','F3 A3 C4 E4 G4','D3 F3 A3 C4 E4','E3 G3 B3 D4 F4'],
+    play:function(b,t,i){var q=this.bar/4,c=ch(this.prog[i%4]);bass(b,c[0],t,q*3.5,0.09);c.slice(1).forEach(function(f,j){ep(b,f*(j>1?1:2),t+j*0.04,q*3.2,0.075);});
+      if(i%2===1){ep(b,c[c.length-1]*2,t+q*2.5,q,0.035);ep(b,c[c.length-2]*2,t+q*3,q*1.2,0.03);}}},
+  /* 따뜻함(아버지·가족·감동): 68bpm, 피아노 아르페지오 */
+  warm:{bar:60/68*4,lv:0.7,prog:['C4 G4 E5 G4','B3 G4 D5 G4','A3 E4 C5 E4','F3 C4 A4 C4'],
+    play:function(b,t,i){var q=this.bar/8,c=ch(this.prog[i%4]);pad(b,c[0],t,this.bar,0.045);
+      for(var k=0;k<8;k++) ep(b,c[k%4],t+k*q,q*2.4,k===0?0.08:0.055);
+      if(i%4===3) ep(b,N.G5,t+q*6,q*3,0.04);}},
+  /* 추모(장례·임종·유품): 50bpm, 아주 조용한 패드 + 가끔 한 음 */
+  grief:{bar:60/50*4,lv:0.33,prog:['A4 C5 E5','F4 A4 C5','C5 E5 G5','G4 B4 D5'],top:['E5','C5','G4','D5'],
+    play:function(b,t,i){var d=this.bar,c=ch(this.prog[i%4]);c.forEach(function(f){pad(b,f,t,d*1.05,0.03);pad(b,f/2,t,d*1.05,0.03);});
+      if(i%2===0) ep(b,N[this.top[i%4]],t+d*0.5,d*0.6,0.04);}},
+  /* 병원·과로: 55bpm, 낮은 단조 패드 */
+  hospital:{bar:60/55*4,lv:0.42,prog:['D4 F4 A4','A3 C4 F4','G3 A#3 D4','A3 C#4 E4'],
+    play:function(b,t,i){var d=this.bar;var c=this.prog[i%4].split(' ').map(function(k){return N[k]||({'A#3':233.1,'C#4':277.2})[k];});
+      c.forEach(function(f){pad(b,f,t,d*1.05,0.035);});if(i%2===1)ep(b,c[2]*2,t+d*0.6,d*0.5,0.025);}},
+  /* 은퇴 후 일상: 72bpm, 잔잔한 4분음 피아노 (슬픈 음악 아님) */
+  retired:{bar:60/72*4,lv:0.8,prog:['C4 E4 G4','E3 G4 B4','F3 A4 C5','G3 B4 D5'],
+    play:function(b,t,i){var q=this.bar/4,c=ch(this.prog[i%4]);bass(b,c[0],t,q*3.5,0.08);
+      [1,2,1,2].forEach(function(x,k){ep(b,c[x],t+k*q,q*1.8,0.075);});if(i%4===1)ep(b,N.E5,t+q*2.5,q*2,0.04);}},
+  /* 주마등: 60bpm, 단조 피아노 */
+  flashback:{bar:4,lv:0.5,prog:['A4 C5 E5','F4 A4 C5','C5 E5 G5','G4 B4 D5'],mel:['E6','C6','E6','D6'],
+    play:function(b,t,i){var q=1,c=ch(this.prog[i%4]);bass(b,c[0]/4,t,3.8,0.05);c.forEach(function(f){pad(b,f,t,4.1,0.025);});ep(b,c[0],t,2,0.06);ep(b,c[1],t+q,2,0.05);ep(b,c[2],t+q*2,2,0.05);
+      ep(b,N[this.mel[i%4]]||1318.5,t+q*2.5,1.5,0.035);}},
+  /* 아버지의 하루(기억): 오르골 */
+  memory:{bar:2.88,lv:0.6,arp:['C5 E5 G5 E5','B4 D5 G5 D5','A4 C5 E5 C5','G4 B4 D5 B4'],
+    play:function(b,t,i){var q=0.72,c=ch(this.arp[i%4]);c.forEach(function(f,k){ep(b,f*2,t+k*q,1.6,0.03);ep(b,f,t+k*q,2,0.045);});pad(b,c[0]/2,t,2.9,0.03);}},
+  /* 엔딩 기록 화면 */
+  ending:{bar:60/66*4,lv:0.6,prog:['C4 E4 G4','A3 C4 E4','F3 A3 C4','G3 B3 D4'],
+    play:function(b,t,i){var q=this.bar/4,c=ch(this.prog[i%4]);c.forEach(function(f){pad(b,f,t,this_bar(q),0.035);});ep(b,c[2]*2,t,q*2,0.05);ep(b,c[1]*2,t+q*2,q*2,0.045);}}
+};
+function this_bar(q){return q*4.1;}
+var cur=null, WANT=null, SYS=null, restoreT=null;
+function stopCur(fade){
+  if(!cur) return; var c=cur; cur=null; clearInterval(c.timer);
+  if(ctx){var t=ctx.currentTime;try{c.bus.gain.cancelScheduledValues(t);c.bus.gain.setValueAtTime(c.bus.gain.value,t);c.bus.gain.linearRampToValueAtTime(0.0001,t+(fade||1));}catch(e){}
+    setTimeout(function(){try{c.bus.disconnect();}catch(e){}},(fade||1)*1000+400);}
+}
+function tick(){
+  var c=cur; if(!c||!ctx) return; var s=SONG[c.kind];
+  if(c.next<ctx.currentTime-0.2) c.next=ctx.currentTime+0.05;
+  while(c.next<ctx.currentTime+1.2){ try{s.play(c.bus,c.next,c.bar);}catch(e){} c.next+=s.bar; c.bar++; }
+}
+function playBgm(kind){
+  if(cur&&cur.kind===kind) return;
+  stopCur(1.4);
+  if(!kind||!on||!SONG[kind]||!C()) return;
+  var bus=ctx.createGain(), t=ctx.currentTime; bus.connect(out);
+  bus.gain.setValueAtTime(0.0001,t); bus.gain.linearRampToValueAtTime(SONG[kind].lv,t+1.6);
+  cur={kind:kind,bus:bus,bar:0,next:t+0.08}; cur.timer=setInterval(tick,250); tick(); log('bgm',kind);
+}
+function setBgm(kind){ WANT=kind; if(!kind){stopCur(1.2);log('bgm','off');return;} playBgm(kind); }
+function finished(){var S=ENG.S;return !!(S&&S.retired&&S.deathAge&&S.age>=S.deathAge+(S.lifeAdj||0));}
+function baseKind(){return SYS;}
+
+/* ---------- 새 효과음 ---------- */
+var SFX={
+  softwarm:function(){var t=ctx.currentTime;ep(sfxBus,N.E5,t,1.2,0.1);ep(sfxBus,N.G5,t+0.16,1.4,0.08);},
+  softdown:function(){var t=ctx.currentTime;ep(sfxBus,N.C5,t,0.9,0.09);ep(sfxBus,N.A4,t+0.22,1.2,0.08);},
+  lonely:function(){var t=ctx.currentTime;ep(sfxBus,N.A4,t,2.4,0.08);ep(sfxBus,N.E4,t+0.02,2.4,0.04);},
+  sparkle:function(){var t=ctx.currentTime;[N.C6,N.E6,N.G6].forEach(function(f,i){ep(sfxBus,f,t+i*0.07,0.8,0.04);});},
+  bell:function(){var t=ctx.currentTime;ep(sfxBus,N.G4,t,2.2,0.09);ep(sfxBus,N.D5,t+0.01,2,0.05);},
+  heartbeat:function(){var t=ctx.currentTime;[0,0.28,1.0,1.28].forEach(function(x,i){var g=ctx.createGain();g.connect(sfxBus);var o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(140,t+x);o.frequency.exponentialRampToValueAtTime(70,t+x+0.12);o.connect(g);env(g,t+x,0.008,i%2?0.22:0.3,0.18);o.start(t+x);o.stop(t+x+0.25);nz(sfxBus,t+x,0.05,0.05,'lowpass',400,0.7);});},
+  ring:function(){_fx('ring');},
+  vibe:function(){var t=ctx.currentTime;[0,0.45].forEach(function(x){var g=ctx.createGain();g.connect(sfxBus);var o=ctx.createOscillator();o.type='square';o.frequency.value=165;var lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=700;o.connect(lp);lp.connect(g);env(g,t+x,0.02,0.05,0.32);o.start(t+x);o.stop(t+x+0.4);});},
+  doorclose:function(){var t=ctx.currentTime;nz(sfxBus,t,0.25,0.18,'lowpass',380,0.8);var g=ctx.createGain();g.connect(sfxBus);var o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(90,t+0.15);o.connect(g);env(g,t,0.005,0.25,0.22);o.start(t);o.stop(t+0.3);nz(sfxBus,t+0.08,0.05,0.06,'bandpass',2200,3);},
+  slam:function(){var t=ctx.currentTime;nz(sfxBus,t,0.35,0.35,'lowpass',500,0.8);var g=ctx.createGain();g.connect(sfxBus);var o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(80,t+0.2);o.connect(g);env(g,t,0.004,0.4,0.3);o.start(t);o.stop(t+0.35);},
+  wind:function(){swellNoise(sfxBus,ctx.currentTime,3.2,0.07,450);},
+  tension:function(){var t=ctx.currentTime;bass(sfxBus,N.A2,t,1.2,0.22);nz(sfxBus,t,0.6,0.05,'lowpass',300,0.7);},
+  softpiano:function(f){ep(sfxBus,f||N.G4,ctx.currentTime,1.8,0.1);},
+  softblip:function(p){var t=ctx.currentTime,g=ctx.createGain(),o=ctx.createOscillator();o.type='sine';o.frequency.value=(p||400)*1.5;o.connect(g);g.connect(sfxBus);env(g,t,0.005,0.025,0.06);o.start(t);o.stop(t+0.08);},
+  softselect:function(){ep(sfxBus,N.E5,ctx.currentTime,0.6,0.05);},
+  crack:function(){var t=ctx.currentTime;nz(sfxBus,t,0.07,0.35,'bandpass',2500,1.2);nz(sfxBus,t,0.15,0.12,'lowpass',600,0.7);},
+  beat:function(){SFX.heartbeat();} /* 원래 60Hz 사인 → 폰에서 안 들림 */
+};
+var lastFin=0;
+function play(n,a){ if(!on||!C()) return; log('sfx',n); if(SFX[n]) try{SFX[n](a);}catch(e){} else _fx(n,a); }
+
+/* ---------- 장면 분류 ---------- */
+function set(s){var o={};s.split(' ').forEach(function(k){o[k]=1;});return o;}
+var GRIEF=set('mom_funeral dad_last r_dad_last dad_things r_dad_things r_spouse_loss f_grave2');
+var HOSP=set('dad_collapse burnout tae_care health_check r_health');
+var WARM=set('f_baseball f_bath f_grave r_bb2 r_bath2 baby propose propose2 bong_jurye entrance teen r_grand r_bong r_bong_last bong_farewell tae_leave r_last r_spouse farewell dad60 later_date bong_ramen lee_quit r_lee r_mentor hire_back whistle_return jl2 r_choi r_park r_memoir r_pen bong_fishing kid_edu');
+var TENSE=set('restructure fraud oh_gapjil kim_blame kimd_steal rumor exec_race park_mistake choi_mistake bong_claim honorary jl3 stock_tip r_scam friend_loan st2');
+var QUIET=set('jl1 jl4 kimd_fall');
+var FAKEY={f_baseball:'bb',f_bath:'bath',f_grave:'grave'};
+var TITLE=null;
+function titleMap(){ if(TITLE) return TITLE; TITLE={}; [ENG.EV,ENG.POOL,ENG.RET].forEach(function(arr){(arr||[]).forEach(function(e){if(e&&e.title&&!TITLE[e.title])TITLE[e.title]=e;});}); return TITLE; }
+var CUR=null; /* {ev, phase} */
+function classify(o){
+  var tag=String(o.tag||''), isEvent=tag.indexOf('|')>=0, title=(isEvent?tag.split('|').pop():tag).trim();
+  var ev=(CUR&&CUR.ev&&CUR.ev.title===title)?CUR.ev:(titleMap()[title]||null);
+  var id=ev?ev.id:'', scene=String(o.scene||''), cat='office';
+  if(GRIEF[id]||scene==='bg_funeral') cat='grief';
+  else if(HOSP[id]) cat='hospital';
+  else if(WARM[id]) cat='warm';
+  else if(TENSE[id]) cat='tense';
+  else if(QUIET[id]||scene==='bg_nightoffice') cat='night';
+  else if(scene==='bg_retire') cat='retire';
+  if(o.somber&&cat!=='grief') cat='hospital';
+  var missed=false;
+  if(FAKEY[id]&&!isEvent){try{missed=ENG.S.fm[FAKEY[id]]==='missed';}catch(e){}}
+  return {cat:cat,id:id,ev:ev,scene:scene,title:title,isEvent:isEvent,missed:missed,who:(o.chars&&o.chars[0])||null,
+    mgres:!!(CUR&&CUR.phase==='mgresult'&&CUR.ev===ev)};
+}
+function bgmFor(info){
+  switch(info.cat){
+    case 'grief': return 'grief'; case 'hospital': return 'hospital'; case 'tense': return 'tense'; case 'night': return 'night';
+    case 'warm': return info.missed?'night':'warm'; case 'retire': return 'warm';
+    default: return baseKind();
+  }
+}
+var POSITIVE=/합격|축하|인수됐|해냈|두 줄|웃었|웃으며/;
+function bgSfx(k){
+  if(/^fa_bath1/.test(k)) return 'drip';
+  if(/^fa_bath2|^fa_milk/.test(k)) return 'bottle';
+  if(/^fa_gr1/.test(k)) return 'car';
+  if(/^fa_gr[23]|^bg_park|^fa_miss_gr/.test(k)) return 'wind';
+  if(/^fa_bb1|^bg_airport/.test(k)) return 'crowdfar';
+  return null;
+}
+function decorate(lines,info){
+  var o=[], amb={bg_subway:'rumble',bg_bath:'drip',bg_grave:'wind',bg_park:'wind'}[info.scene];
+  if(info.isEvent&&amb) o.push({sfx:amb});
+  if(info.isEvent&&info.scene==='bg_pub'&&info.cat==='office') o.push({sfx:'crowdfar'});
+  if(!info.isEvent&&FAKEY[info.id]) o.push({sfx:info.missed?'lonely':'softwarm'});
+  lines.forEach(function(L){
+    if(!L){return;}
+    if(L.bg){o.push(L);var s=bgSfx(L.bg);if(s)o.push({sfx:s});return;}
+    if(L.frames||L.sfx){o.push(L);return;}
+    var t=String(L.t||'');
+    if(info.cat!=='grief'){
+      if(/^📞|전화가 왔다|모르는 번호|의 전화\./.test(t)) o.push({sfx:info.cat==='hospital'?'vibe':'ring'});
+      else if(/^📱|띠링/.test(t)) o.push({sfx:'vibe'});
+    }
+    if(/딱—/.test(t)) o.push({sfx:'crack'});
+    if(/쾅 닫혔|문이 쾅/.test(t)) o.push({sfx:'slam'});
+    else if(/현관문.*닫히/.test(t)) o.push({sfx:'doorclose'});
+    if(/바람이 (한 번 )?불었다/.test(t)) o.push({sfx:'wind'});
+    if(L.flash){
+      if(info.cat==='grief'){L.flash=false;}
+      else if(info.cat==='hospital'){o.push({sfx:'__obj:heartbeat'});}
+      else if(info.cat==='warm'||info.cat==='retire'||POSITIVE.test(t)){L.flash=false;o.push({sfx:info.cat==='retire'?'bell':'sparkle'});}
+    }
+    o.push(L);
+  });
+  return o;
+}
+
+/* ---------- 결과/시작 효과음 판정 ---------- */
+var ANGRY={kim:1,boss:1,oh:1,jung:1,ceo:1};
+function stinger(info){
+  if(info.mgres||Date.now()-lastFin<2200) return null;                 /* 미니게임 종료음과 중복 방지 */
+  var w=info.who||['me',0], k=w[0], e=+w[1]||0;
+  if(info.cat==='grief') return null;          /* 장례·임종·유품: 무음 */
+  if(info.cat==='hospital') return e===1?'softwarm':null;
+  if(info.cat==='warm'||info.cat==='retire'){ if(info.missed) return 'lonely'; if(e===2&&(k==='seo'||k==='haeun')) return 'softdown'; return 'softwarm'; }
+  if((ANGRY[k]&&e===5)||(k==='kimd'&&e===5&&info.id!=='kimd_fall')) return 'bad';
+  if((k==='me'&&(e===2||e===3||e===4))||((k==='seo'||k==='haeun'||k==='boss')&&e===2)||(/^(park|parko|choi|kimd|oh|jung)$/.test(k)&&e===4)||(k==='lee'&&e===2)) return 'softdown';
+  if(e===1||e===7||(e===3&&/^(tae|lee|haeun)$/.test(k))) return 'good';
+  if(e===4||e===5) return 'softwarm';          /* 박대리·최준·이본일 등의 감동/고마움 표정 */
+  return 'ok';
+}
+function opener(info,n,a){
+  switch(info.cat){
+    case 'grief': case 'hospital': return null;
+    case 'warm': return ['softpiano',N.G4];
+    case 'tense': return ['tension'];
+    case 'night': return ['softpiano',N.E4];
+  }
+  var ev=info.ev;
+  if(ev&&ev.mg&&!ev.ch) return ev.mg==='phone'?['ring']:ev.mg==='baby'?['softpiano',N.E4]:['msg'];
+  return [n,a];
+}
+
+/* ---------- SND 교체 ---------- */
+var OPEN_SEQ=0, LAST=null, CTX=null, blipN=0, NEXTOBJ=null;
+var DEFER=set('ding msg ring piano good bad ok');
+SND.fx=function(n,a){
+  if(!on) return;
+  if(typeof n==='string'&&n.indexOf('__obj:')===0){NEXTOBJ=n.slice(6);return;}
+  if(DEFER[n]){
+    var s=OPEN_SEQ;
+    Promise.resolve().then(function(){
+      if(OPEN_SEQ!==s&&LAST){
+        if(LAST.isEvent&&/^(ding|msg|ring|piano)$/.test(n)){var op=opener(LAST,n,a);if(op)play(op[0],op[1]);else log('sfx','(무음:'+n+')');return;}
+        if(!LAST.isEvent&&/^(good|bad|ok)$/.test(n)){var st=stinger(LAST);if(st)play(st);else log('sfx','(무음:'+n+')');return;}
+      }
+      if(/^(good|ok|bad)$/.test(n)) lastFin=Date.now();   /* 미니게임 종료음 */
+      play(n,a);
+    });
+    return;
+  }
+  var vnOn=!!document.querySelector('#vn.on'), cat=vnOn&&CTX?CTX.cat:null;
+  if(n==='objection'){ var r=NEXTOBJ; NEXTOBJ=null; if(cat==='grief') return; if(r) return play(r); return play(n,a); }
+  if(n==='blip'){ if(cat==='grief') return; if(cat==='hospital'||cat==='warm'||cat==='night'){ if((blipN++)%2) return; return play('softblip',a); } return play(n,a); }
+  if(n==='click'&&cat==='grief') return;
+  if(n==='select'&&(cat==='grief'||cat==='hospital')) return play('softselect');
+  return play(n,a);
+};
+SND.bgm=function(kind){
+  try{_bgm(null);}catch(e){}
+  clearTimeout(restoreT);
+  var mont=!!document.querySelector('#mont.on'), S=ENG.S, m=null;
+  if(kind==='main') m=finished()?'ending':(S&&S.retired?'retired':'office');
+  else if(kind==='sad') m=mont?'flashback':'retired';
+  else if(kind==='memory') m='memory';
+  else if(kind&&SONG[kind]) m=kind;
+  SYS=m; setBgm(m);
+};
+SND.toggle=function(){
+  var r=_toggle.apply(this,arguments); on=!!r;
+  if(!on){var w=WANT;stopCur(0.3);WANT=w;} else if(WANT){cur=null;playBgm(WANT);}
+  return r;
+};
+SND.patchInfo=function(){return {want:WANT,playing:cur&&cur.kind,ctx:CTX&&CTX.cat,log:LOG.slice(-30)};};
+
+/* ---------- 장면 진입/종료 감시 ---------- */
+VN.open=function(o,cb){
+  try{
+    var info=classify(o||{}); CTX=info; LAST=info; OPEN_SEQ++; NEXTOBJ=null; if(info.isEvent) lastFin=0;
+    if(o&&o.lines) o.lines=decorate(o.lines,info);
+    clearTimeout(restoreT);
+    var k=bgmFor(info); if(k!==WANT) setBgm(k);
+    log('scene',info.cat+'/'+(info.id||info.title));
+  }catch(e){ if(window.console) console.warn('sound patch',e); }
+  return _open.call(this,o,cb);
+};
+VN.close=function(){
+  var r=_close.apply(this,arguments);
+  clearTimeout(restoreT);
+  restoreT=setTimeout(function(){ if(!document.querySelector('#vn.on')){CTX=null; if(WANT!==baseKind()) setBgm(baseKind());} },350);
+  return r;
+};
+/* 어떤 이벤트/선택 결과가 화면에 뜨는지 엔진에서 직접 받아 둔다 */
+['step','retiredStep'].forEach(function(fn){var f=ENG[fn];if(typeof f!=='function')return;ENG[fn]=function(){var r=f.apply(this,arguments);if(r&&r.ev&&r.ev.type!=='promo')CUR={ev:r.ev,phase:'event'};return r;};});
+var _ac=ENG.applyChoice; ENG.applyChoice=function(ev){CUR={ev:ev,phase:'result'};return _ac.apply(this,arguments);};
+var _mr=ENG.mgResult; ENG.mgResult=function(){var r=_mr.apply(this,arguments);if(CUR)CUR.phase='mgresult';return r;};
+
+/* ---------- 모바일 소리 잠금 해제 / 백그라운드 정지 ---------- */
+function unlock(){ if(C()&&ctx.state!=='running') try{ctx.resume();}catch(e){} }
+document.addEventListener('pointerdown',unlock,true);
+document.addEventListener('touchend',unlock,true);
+document.addEventListener('visibilitychange',function(){ if(!ctx) return; try{ document.hidden?ctx.suspend():ctx.resume(); }catch(e){} });
+})();
+</script>
 </body></html>
