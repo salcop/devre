@@ -263,8 +263,8 @@ var MENUS=['아메리카노','카페라떼','바닐라라떼','콜드브루','�
 
 function newPrefs(co){
   var ex=shuffle(['2031','2045','2017','2058','2026','2093','2072','2014']).slice(0,5);
-  var ppl = co==='행복산업' ? [['김부장','kim'],['윤과장','choi'],['박대리','park'],['최주임','ceo']]
-          : [[S.boss.n,'boss'],['장과장','jung'],['송대리','oh'],['신입 윤서','choi']];
+  var ppl = co==='행복산업' ? [['김부장','kim'],['김대리','kimd'],['박대리','park'],['이지윤','lee']]
+          : [[S.boss.n,'boss'],['장과장','jung'],['송대리','oh'],['신입 윤호','choi']];
   var cof={}; ppl.forEach(function(p){cof[p[0]]={m:pick(MENUS),t:pick(['HOT','ICE']),k:p[1]};});
   if(co==='행복산업'){cof['김부장']={m:'아메리카노',t:'ICE',k:'kim'};}
   return {ext:{'정산':ex[0],'계약':ex[1],'견적':ex[2],'인사':ex[3],'팀장':ex[4]},coffee:cof};
@@ -650,7 +650,7 @@ E({id:'choi_join',cond:HB,type:'minor',age:[32,33],corp:1,scene:'office',chars:[
   ch:[{t:'직접 데리고 가서 알려준다',f:function(){S.choi.in=true;S.rel.choi=60;S.choi.grat+=5;fx({social:2});mem('신입 최준에게 복합기 쓰는 법을 알려줬다.','choi',1,45,'choi');note('choi','신입. 수첩에 뭐든 적는다. 예전의 나 같다.');return res(L('종이 걸림 푸는 법까지 알려줬다. 최준이 수첩에 받아 적었다.','예전의 나 같았다.'),['choi',1]);}},
       {t:'"매뉴얼 공유폴더에 있어"',f:function(){S.choi.in=true;S.rel.choi=45;note('choi','신입. 질문이 많다.');return res('@choi4 아, 네...',['choi',4]);}},
       {t:'컵라면을 하나 사 준다',f:function(){S.choi.in=true;S.rel.choi=58;S.choi.grat+=4;note('choi','신입. 컵라면 국물까지 다 마셨다.');return res(L('예전에 누가 나한테 그랬던 것처럼.','@choi1 선배님, 이거 국물이 맛이네요!'),['choi',1]);}}]});
-E({id:'bong_promo',type:'major',age:[33,35],corp:1,cond:HB,scene:'office',chars:[['bong',1]],title:'이상무님',
+E({id:'bong_promo',type:'major',age:[33,35],corp:1,cond:HB,onDone:function(){S.flags.bongExec=1;},scene:'office',chars:[['bong',1]],title:'이상무님',
   text:L('인사 발표. 이본일 부장님이 상무로 승진했다.','축하 인사를 하러 갔더니, 이상무님이 문을 닫았다.','@bong0 신사업본부를 맡게 됐다. 거기 너 같은 사람이 필요하다.','@bong2 대신 일이 많다. 생각해 보고 말해라.'),
   ch:[{t:'이상무님 본부로 간다',f:function(){S.flags.bongTeam=1;S.flags.bongExec=1;fx({'rel.bong':12,work:6,trust:6,stress:6});mem('이상무님 본부로 옮겼다. 첫날 컵라면 두 개가 책상에 있었다.','bong',1,74,'bong');note('bong','상무. 신사업본부장. 나를 데려가 준 사람.');return res(L('첫 출근날, 새 책상 위에 컵라면 두 개가 놓여 있었다.','"국물은 남겨라. -이본일"'),['bong',1]);}},
       {t:'지금 팀에 남겠다고 말씀드린다',f:function(){fx({'rel.bong':6,'rel.kim':6});return res(L('@bong1 그 의리가 좋다. 김부장이 복 받았네.','@bong0 대신 언제든 필요하면 문 두드려라.'),['bong',1]);}},
@@ -690,11 +690,11 @@ E({id:'stock_tip',type:'major',age:[36,40],fam:1,cond:function(){return S.park.s
   ch:[{t:'박대리를 믿고 판다',f:function(){S.flags.stockSaved=1;fx({'rel.park':6});mem('박대리의 전화를 믿었다. 일주일 뒤 그 주식은 반토막이 났다.','parko',0,75,'park');return res(L('!일주일 뒤, 대한전자 분식회계 기사가 떴다. 주가 -63%.','...그때 그 박대리가.'),['me',2]);}},
       {t:'절반만 판다',f:function(){S.cash-=900;return res('주가는 반토막이 났다. 절반은 건졌다.',['me',2]);}},
       {t:'"무슨 소리야, 지금이 바닥이야"',f:function(){S.cash-=2200;fx({stress:8});return res(L('대한전자 주가 -63%.','@parko2 형... 괜찮아요? 밥 한번 살게요.'),['me',4]);}}]});
-E({id:'acting_lead',cond:HB,type:'major',age:[34,37],corp:1,scene:'office',chars:[['choi',0]],title:'팀장 대행',
+E({id:'acting_lead',cond:HB,type:'major',age:[34,37],corp:1,scene:'office',chars:function(){return S.choi.in?[['choi',0]]:[];},title:'팀장 대행',
   text:L('팀장이 육아휴직을 갔다. 6개월간 팀장 대행.','첫 팀 회의. 다들 나를 본다.'),
   ch:[{t:'"제가 다 챙기겠습니다" 직접 다 한다',f:function(){fx({work:5,stress:10,social:-2});return res('일은 완벽했다. 대신 6개월 동안 칼퇴를 한 적이 없다.',['me',3]);}},
-      {t:'역할을 나누고 믿고 맡긴다',f:function(){var o=roll(0.5,0.25,(S.st.social-50)/100);fx({social:5,'rel.choi':5});return res(o==='b'?'한 명이 펑크를 냈다. 수습은 결국 내 몫이었다.':L('팀원들이 생각보다 훨씬 잘했다. 나는 막아주기만 하면 됐다.','@choi1 선배님 밑에서 일하는 거, 재밌어요.'),[o==='b'?'me':'choi',o==='b'?2:1]);}},
-      {t:'이상무님께 조언을 구한다',f:function(){fx({'rel.bong':6,work:3,social:3});return res(L('@bong0 리더는 일을 하는 사람이 아니라, 일이 되게 하는 사람이다.','@bong1 그리고 팀원 생일은 꼭 챙겨라. 그게 반이다.'),['bong',0]);}}]});
+      {t:'역할을 나누고 믿고 맡긴다',f:function(){var o=roll(0.5,0.25,(S.st.social-50)/100);fx({social:5,'rel.choi':5});return res(o==='b'?'한 명이 펑크를 냈다. 수습은 결국 내 몫이었다.':(S.choi.in?L('팀원들이 생각보다 훨씬 잘했다. 나는 막아주기만 하면 됐다.','@choi1 선배님 밑에서 일하는 거, 재밌어요.'):L('팀원들이 생각보다 훨씬 잘했다. 나는 막아주기만 하면 됐다.','막내가 회식 자리에서 "요즘 팀 분위기 제일 좋아요"라고 했다.')),[o==='b'||!S.choi.in?'me':'choi',o==='b'?2:1]);}},
+      {t:'{BONG}께 조언을 구한다',f:function(){fx({'rel.bong':6,work:3,social:3});return res(L('@bong0 리더는 일을 하는 사람이 아니라, 일이 되게 하는 사람이다.','@bong1 그리고 팀원 생일은 꼭 챙겨라. 그게 반이다.'),['bong',0]);}}]});
 
 /* ===== 아버지와의 날 ③ 할머니 산소 ===== */
 E({id:'f_grave',type:'major',fam:1,age:[34,38],mo:[8,10],scene:'bg_home',chars:[['dad',0]],title:'추석 전 주',
@@ -713,10 +713,10 @@ E({id:'f_grave',type:'major',fam:1,age:[34,38],mo:[8,10],scene:'bg_home',chars:[
         return res('@dad0 그래, 다음에 가자. 할머니한텐 내가 안부 전해 두마.',['dad',0]);}}]});
 
 E({id:'entrance',type:'major',age:[36,44],fam:1,cond:function(){return childAge()===7&&S.m>=2&&S.m<=3;},scene:'bg_school',chars:[['haeun',1]],title:'입학식',
-  text:L('하은이 초등학교 입학식.','그런데 같은 날 오전 10시, 회사 생존이 걸린 고객 PT가 잡혔다.','@boss0 이번 PT는 {N}씨 아니면 안 돼.'),
-  ch:[{t:'PT에 간다',f:function(){fx({'rel.child':-14,fam:-6});mem('하은이 입학식 날, 회의실에서 PT를 했다.','haeun',4,88,'child','bg_school');return res('PT를 시작한다.',['me',0],{mg:'pt',after:function(sc){if(sc>=0.6){fx({trust:10,work:3});return res(L('PT는 성공이었다.','저녁에 서연이 보낸 사진을 봤다. 빈 의자 옆에서 하은이가 엄마랑 웃고 있었다.'),['me',4]);}fx({trust:-4});return res('PT는 애매하게 끝났다. 저녁에 받은 사진 속, 빈 의자 옆에서 하은이가 웃고 있었다.',['me',4]);}});}},
-      {t:'입학식에 간다',f:function(){fx({'rel.child':16,fam:8,trust:-8});S.flags.entrance=1;mem('하은이 입학식. 하은이가 내 손을 꼭 잡고 걸었다.','haeun',1,92,'child','bg_school');return res(L('@haeun1 아빠! 아빠 왔다!','하은이가 내 손을 꼭 잡고 교문을 들어갔다.','회사에선 PT를 옆 팀이 대신 했다.'),['haeun',1]);}},
-      {t:'PT만 하고 입학식 끝에라도 달려간다',f:function(){fx({'rel.child':6,trust:3,stress:8});mem('입학식이 끝날 무렵 교문으로 뛰어갔다.','haeun',1,80,'child','bg_school');return res('PT를 끝내고 택시를 탔다. 입학식은 끝났지만 교문 앞에서 하은이가 손을 흔들었다.',['haeun',1]);}}]});
+  text:function(){return S.track==='jobless'?L('하은이 초등학교 입학식.','오늘은 잡힌 면접도, 회의도 없다.'):L('하은이 초등학교 입학식.','그런데 같은 날 오전 10시, 회사 생존이 걸린 고객 PT가 잡혔다.','@boss0 이번 PT는 {N}씨 아니면 안 돼.');},
+  ch:[{t:'PT에 간다',cond:function(){return S.track!=='jobless';},f:function(){fx({'rel.child':-14,fam:-6});mem('하은이 입학식 날, 회의실에서 PT를 했다.','haeun',4,88,'child','bg_school');return res('PT를 시작한다.',['me',0],{mg:'pt',after:function(sc){if(sc>=0.6){fx({trust:10,work:3});return res(L('PT는 성공이었다.','저녁에 서연이 보낸 사진을 봤다. 빈 의자 옆에서 하은이가 엄마랑 웃고 있었다.'),['me',4]);}fx({trust:-4});return res('PT는 애매하게 끝났다. 저녁에 받은 사진 속, 빈 의자 옆에서 하은이가 웃고 있었다.',['me',4]);}});}},
+      {t:'입학식에 간다',f:function(){fx({'rel.child':16,fam:8,trust:-8});S.flags.entrance=1;mem('하은이 입학식. 하은이가 내 손을 꼭 잡고 걸었다.','haeun',1,92,'child','bg_school');return res(L('@haeun1 아빠! 아빠 왔다!','하은이가 내 손을 꼭 잡고 교문을 들어갔다.',S.track==='jobless'?'오랜만에, 아빠라서 다행인 하루였다.':'회사에선 PT를 옆 팀이 대신 했다.'),['haeun',1]);}},
+      {t:'PT만 하고 입학식 끝에라도 달려간다',cond:function(){return S.track!=='jobless';},f:function(){fx({'rel.child':6,trust:3,stress:8});mem('입학식이 끝날 무렵 교문으로 뛰어갔다.','haeun',1,80,'child','bg_school');return res('PT를 끝내고 택시를 탔다. 입학식은 끝났지만 교문 앞에서 하은이가 손을 흔들었다.',['haeun',1]);}}]});
 E({id:'job_offer',type:'major',age:[35,37],corp:1,scene:'cafe',chars:[],title:'헤드헌터',
   text:function(){return S.flags.taeLink?L('점심시간, 모르는 번호.','@?헤드헌터 한빛그룹 경력직 자리입니다. 조태연 부장님이 직접 추천하셨어요.','@?헤드헌터 연봉은 지금보다 20% 높게 맞춰드릴 수 있습니다.'):L('점심시간, 모르는 번호.','@?헤드헌터 대성물산 경력직 자리입니다. 연봉은 지금보다 20% 높게 맞춰드릴 수 있어요.');},
   ch:[{t:'이직한다',f:function(){var co=S.flags.taeLink?'한빛그룹':'대성물산';var o=roll(S.flags.taeLink?0.5:0.35,0.25,(S.st.work-55)/120);S.flags.betterPay=1;fx({social:-4});moveTo(co,0,'offer');mem('사원증을 반납했다. 김부장이 "잘 가라"고 했다.','kim',4,60,'kim');
@@ -731,10 +731,10 @@ E({id:'house',type:'major',age:[36,38],fam:1,scene:'home',chars:[['seo',0]],titl
       {t:'전세로 버티며 모은다',f:function(){fx({stress:2});return res('전세 계약을 2년 연장했다. 집주인이 보증금을 올렸다.',['me',0]);}},
       {t:'집 대신 투자에 넣는다',f:function(){var o=roll(0.3,0.35);var amt=Math.max(1000,Math.round(S.cash*0.6));if(o==='g')S.cash+=Math.round(amt*0.9);else if(o==='b'){S.cash-=Math.round(amt*0.5);fx({stress:10});}return res(o==='g'?'운이 좋았다. 수익률이 꽤 괜찮았다.':o==='b'?'시장이 무너졌다. 투자금이 반토막 났다.':'오르락내리락. 결국 본전 근처.',['me',o==='b'?4:1]);}}]});
 E({id:'dad_collapse',somber:1,type:'major',age:[37,40],fam:1,cond:function(){return S.dadAlive;},scene:'bg_hospital',chars:[['dad',8]],title:'아버지가 쓰러지셨다',
-  text:L('오후 2시, 어머니의 전화.','@mom0 아버지가 쓰러지셨어. 지금 병원이야.','오늘은 분기 마감일이다.'),
+  text:function(){return L('오후 2시, 어머니의 전화.','@mom0 아버지가 쓰러지셨어. 지금 병원이야.',S.track==='jobless'?'휴대폰을 쥔 채 현관으로 뛰었다.':'오늘은 분기 마감일이다.');},
   ch:[{t:'바로 병원으로 간다',f:function(){S.flags.dadSick=1;fx({'rel.dad':15,fam:5,trust:-3});mem('아버지 병실에서 밤을 샜다. 아버지가 내 손을 잡았다.','dad',4,85,'dad','bg_hospital');return res(L('아버지는 다행히 고비를 넘겼다.','병실에서 처음으로 아버지 손을 오래 잡았다.','@dad8 ...왜 왔어, 바쁜데. 그래도 얼굴 보니 좋다.'),['dad',8]);}},
-      {t:'마감 정리하고 저녁에 간다',f:function(){S.flags.dadSick=1;fx({'rel.dad':2,trust:4,stress:6});return res(L('밤 9시에 병원에 도착했다.','@dad8 회사는 괜찮냐? 나는 괜찮다. 너 밥은 먹었고?'),['dad',0]);}},
-      {t:'팀원에게 맡기고 간다',f:function(){S.flags.dadSick=1;fx({'rel.dad':12,'rel.choi':S.choi.in?5:0});if(S.choi.in)S.choi.grat+=10;return res(S.choi.in?'@choi1 걱정 마세요, 선배님. 마감은 제가 끝낼게요.':'팀원들이 마감을 끝내 줬다.',[S.choi.in?'choi':'me',1]);}}]});
+      {t:'마감 정리하고 저녁에 간다',cond:function(){return S.track!=='jobless';},f:function(){S.flags.dadSick=1;fx({'rel.dad':2,trust:4,stress:6});return res(L('밤 9시에 병원에 도착했다.','@dad8 회사는 괜찮냐? 나는 괜찮다. 너 밥은 먹었고?'),['dad',0]);}},
+      {t:'팀원에게 맡기고 간다',cond:function(){return S.track!=='jobless';},f:function(){S.flags.dadSick=1;fx({'rel.dad':12,'rel.choi':S.choi.in?5:0});if(S.choi.in)S.choi.grat+=10;return res(S.choi.in?'@choi1 걱정 마세요, 선배님. 마감은 제가 끝낼게요.':'팀원들이 마감을 끝내 줬다.',[S.choi.in?'choi':'me',1]);}}]});
 E({id:'tae_care',type:'minor',age:[37,41],fam:1,cond:function(){return S.flags.dadSick&&S.rel.tae>=45&&!S.flags.taeCare;},scene:'bg_hcorr',chars:[['tae',2]],title:'가족돌봄',
   text:L('병원 복도. 조태연에게서 전화가 왔다. 어디서 들었는지.','@tae2 아버님 소식 들었어요. 회사에 가족돌봄휴가 제도 있는 거 알아요?','@tae0 열흘까지 쓸 수 있어요. 눈치 보지 말고 써요. 그러라고 만든 거예요.'),
   ch:[{t:'휴가를 신청한다',f:function(){S.flags.taeCare=1;fx({'rel.tae':10,'rel.dad':10,stress:-6,fam:4,'lm.family':6});mem('조태연의 전화 덕분에 아버지 곁을 지켰다.','tae',2,66,'tae');return res(L('열흘 동안 아버지 곁에 있었다.','아버지는 처음으로 내 회사 얘기를 끝까지 들어주셨다.','@dad8 우리 아들, 회사에서 인정받는구나. 됐다, 그럼.'),['dad',8]);}},
@@ -743,7 +743,7 @@ E({id:'tae_care',type:'minor',age:[37,41],fam:1,cond:function(){return S.flags.d
 E({id:'choi_mistake',type:'major',age:[38,40],corp:1,cond:function(){return S.choi.in&&S.company==='행복산업';},scene:'bg_event',chars:[['choi',2]],title:'데자뷔',
   text:L('최준이 견적서 숫자를 잘못 넣었다.','이미 상무님 보고가 끝난 자료다.','@choi2 선배님... 이거 제가...','!...어디서 본 장면이다.'),
   ch:[{t:'"제가 확인을 못 했습니다"',f:function(){S.choi.grat+=35;fx({'rel.choi':20,trust:-6});mem('최준 대신 혼났다.'+(S.flags.parkCover?' 12년 전의 나처럼.':''),'choi',2,70,'choi');return res(L('상무실에서 한참 혼났다. 나오는데 최준이 고개를 깊이 숙였다.',S.flags.parkCover?'12년 전 박대리의 얼굴이 겹쳐 보였다.':'@choi5 ...평생 안 잊을게요.'),['choi',5]);}},
-      {t:'최준과 같이 들어가서 수습한다',f:function(){S.choi.grat+=15;fx({'rel.choi':10,trust:2,integ:3});return res('둘이 같이 고개를 숙였다. "사과는 빨리, 직접, 같이." 이부장님이 가르쳐 준 대로.',['choi',1]);}},
+      {t:'최준과 같이 들어가서 수습한다',f:function(){S.choi.grat+=15;fx({'rel.choi':10,trust:2,integ:3});return res('둘이 같이 고개를 숙였다. "사과는 빨리, 직접, 같이." 신입 때 이본일 님이 가르쳐 준 대로.',['choi',1]);}},
       {t:'최준이 직접 책임지게 한다',f:function(){fx({'rel.choi':-8,integ:1});return res('최준이 혼자 상무실에 들어갔다. 혼은 났지만, 그날부터 최준은 검산을 두 번 했다.',['choi',4]);}}]});
 E({id:'schedule',type:'mg',mg:'schedule',age:[38,40],scene:'office',chars:[],title:'캘린더 테트리스',text:L('다음 주 캘린더가 회의로 가득 찼다.','점심시간만은... 지키고 싶다.')});
 E({id:'health_check',type:'major',age:[39,42],fam:1,cond:function(){return S.st.health<65||S.st.stress>60;},scene:'bg_hcorr',chars:[],title:'건강검진',
@@ -792,7 +792,7 @@ E({id:'restructure',type:'major',age:[41,43],corp:1,scene:'meeting',chars:[['ceo
       {t:'희망퇴직 조건을 알아본다',f:function(){S.cash+=Math.round(S.salary*1.5);return fired('위로금 18개월 치. 박스 하나에 10여 년이 다 들어갔다.');}}]});
 function toJobless(why){['jl1','jl2','jl3','jl4'].forEach(function(k){delete S.done[k];});S.track='jobless';S.jl={m:0,why:why,coach:0,tries:0};S.salary=0;S.yir=0;pushChapter('jobless');}
 function fired(t){
-  S.flags.restructured=1;fx({stress:12,health:-4});mem('회사 정문을 나왔다. 박스가 생각보다 가벼웠다.','me',4,82,'career','bg_retire');
+  S.flags.restructured=1;fx({stress:12,health:-4});mem('회사 정문을 나왔다. 박스가 생각보다 가벼웠다.','me',4,82,'career','bg_lobby');
   if(S.park.grat>=30&&(S.park.stage==='ok'||S.park.stage==='bigsuccess')){S.rank=Math.max(S.rank,3);moveTo('박대표 회사',0,'park');S.flags.parkRescue=1;mem('박대표가 전화했다. "형, 우리 회사로 와요."','parko',1,88,'park');
     return res(L(t,'일주일 뒤 박대표에게 전화가 왔다.','!@parko1 형. 그때 일, 저 아직 기억해요. 우리 회사로 와요.'),['parko',1]);}
   toJobless(t);
@@ -829,16 +829,16 @@ E({id:'mail2',type:'mg',mg:'mail',age:[44,45],scene:'office',chars:[],title:'월
 /* ===== 아버지와의 이별 ===== */
 function dadGone(){S.dadAlive=false;S.flags.dadDiedAge=S.age;S.flags.dadDiedTick=S.tick;S.flags.dadNight=1;note('dad','우리 아버지. 늘 먼저 물으셨다. "밥은 먹었냐."');}
 E({id:'dad_last',somber:1,type:'major',age:[44,52],fam:1,cond:function(){return S.dadAlive;},scene:'bg_hospital',chars:[['dad',8]],title:'아버지',
-  text:L('@?의사 오늘 밤을 넘기기 어려우실 것 같습니다.','그런데 내일 아침, 해외 바이어와 계약 서명식이 잡혀 있다. 비행기는 3시간 뒤.'),
+  text:function(){return S.track==='jobless'?L('@?의사 오늘 밤을 넘기기 어려우실 것 같습니다.','회사를 나온 뒤라, 이번엔 붙잡는 일정이 하나도 없었다.'):L('@?의사 오늘 밤을 넘기기 어려우실 것 같습니다.','그런데 내일 아침, 해외 바이어와 계약 서명식이 잡혀 있다. 비행기는 3시간 뒤.');},
   ch:[{t:'아버지 곁에 남는다',f:function(){dadGone();fx({'rel.dad':20,fam:6,trust:-6,'lm.family':8});mem('아버지 마지막 밤. "고생했다, 아들."','dad',4,97,'dad','bg_hospital');return res(L('밤새 아버지 손을 잡고 있었다.','새벽 4시. 아버지가 눈을 떴다.','@dad8 ...고생했다, 아들. 밥 잘 챙겨 먹어라.','그게 마지막 말이었다.'),['me',4]);}},
-      {t:'출장을 간다',f:function(){dadGone();fx({trust:8,stress:15,'lm.missed':1});mem('아버지 임종을 공항에서 들었다.','dad',4,97,'dad','bg_hospital');return res(L('#bg bg_airport','공항 라운지에서 전화를 받았다.','어머니 목소리가 차분했다. "아버지가 마지막에 그러셨다. 출장 잘 다녀오라고. 걱정 말라고."','계약은 성사됐다. 돌아오는 비행기 안에서 처음으로 소리 내 울었다.'),['me',4]);}},
-      {t:'서명식을 화상으로 바꿔달라고 한다',f:function(){dadGone();fx({'rel.dad':15,'lm.family':6});mem('아버지 마지막 밤. 병원 복도에서 화상 서명을 했다.','dad',4,95,'dad','bg_hospital');return res(L('#bg bg_hcorr','병원 복도에서 노트북으로 서명을 했다.','그리고 아버지 곁에 돌아왔다.','@dad8 ...일은 잘 됐냐. 그럼 됐다.'),['me',4]);}}]});
+      {t:'출장을 간다',cond:function(){return S.track!=='jobless';},f:function(){dadGone();fx({trust:8,stress:15,'lm.missed':1});mem('아버지 임종을 공항에서 들었다.','dad',4,97,'dad','bg_hospital');return res(L('#bg bg_airport','공항 라운지에서 전화를 받았다.','어머니 목소리가 차분했다. "아버지가 마지막에 그러셨다. 출장 잘 다녀오라고. 걱정 말라고."','계약은 성사됐다. 돌아오는 비행기 안에서 처음으로 소리 내 울었다.'),['me',4]);}},
+      {t:'서명식을 화상으로 바꿔달라고 한다',cond:function(){return S.track!=='jobless';},f:function(){dadGone();fx({'rel.dad':15,'lm.family':6});mem('아버지 마지막 밤. 병원 복도에서 화상 서명을 했다.','dad',4,95,'dad','bg_hospital');return res(L('#bg bg_hcorr','병원 복도에서 노트북으로 서명을 했다.','그리고 아버지 곁에 돌아왔다.','@dad8 ...일은 잘 됐냐. 그럼 됐다.'),['me',4]);}}]});
 E({id:'f_grave2',type:'major',fam:1,age:[46,62],mo:[8,10],cond:function(){return !S.dadAlive&&S.flags.dadDiedAge!=null&&S.age>=S.flags.dadDiedAge+1&&!S.retired;},scene:'bg_grave',chars:[['me',4]],title:'첫 성묘',
   text:function(){return S.fm.grave==='went'?L('아버지가 떠나고 처음 맞는 추석.','아버지는 할머니 산소 바로 옆에 계신다.','가는 길은 기억하고 있었다. 몇 년 전 아버지 차 조수석에서 봤던 그 논길.'):L('아버지가 떠나고 처음 맞는 추석.','아버지는 할머니 산소 바로 옆에 계신다.',(S.momAlive?'가는 길을 몰라 어머니께 전화를 걸었다.':'가는 길을 몰라 아버지 수첩에 그려진 약도를 펼쳤다.')+' 아버지는 이 길을 매년 혼자 다니셨다.');},
   ch:[{t:function(){return S.childBorn!=null?'하은이를 데리고 간다':'혼자 다녀온다';},f:function(){fx({'lm.root':10,fam:4,stress:-4,'rel.child':S.childBorn!=null?8:0});
-        var went=S.fm.grave==='went';mem(went?'아버지 산소. 아버지가 하던 대로 풀을 뽑았다.':'아버지 산소. 처음 와 본 길이었다.','me',0,88,'echo','bg_park',{q:'아버지가 떠나고 첫 추석.'});
-        return res(L(went?'#bg fa_gr2':'#bg fa_miss_gr',went?'몇 년 전, 아버지와 둘이 풀을 뽑던 자리. 아버지가 하던 대로, 봉분 주변 풀부터 뽑았다.':'아버지가 혼자 서 계셨을 자리에, 이번엔 내가 서 보았다.','#bg bg_park',S.childBorn!=null?'@haeun4 할아버지, 할머니 옆이라 안 심심하시겠다.':'바람이 불었다. 낙엽 소리뿐이었다.',went?'돌아오는 길, 노을이 그날과 같은 색이었다.':'돌아오는 길, 다음엔 길을 헤매지 않을 것 같았다.'),[S.childBorn!=null?'haeun':'me',S.childBorn!=null?4:0]);}},
-      {t:'어머니를 모시고 간다',cond:function(){return S.momAlive;},f:function(){fx({'lm.root':10,fam:6,'rel.mom':8});mem('어머니와 아버지 산소에 갔다.','me',0,84,'echo','bg_park',{q:'아버지가 떠나고 첫 추석.'});
+        var went=S.fm.grave==='went';mem(went?'아버지 산소. 아버지가 하던 대로 풀을 뽑았다.':'아버지 산소. 처음 와 본 길이었다.','me',0,88,'echo','bg_grave',{q:'아버지가 떠나고 첫 추석.'});
+        return res(L(went?'#bg fa_gr2':'#bg fa_miss_gr',went?'몇 년 전, 아버지와 둘이 풀을 뽑던 자리. 아버지가 하던 대로, 봉분 주변 풀부터 뽑았다.':'아버지가 혼자 서 계셨을 자리에, 이번엔 내가 서 보았다.','#bg bg_grave',S.childBorn!=null?'@haeun4 할아버지, 할머니 옆이라 안 심심하시겠다.':'바람이 불었다. 낙엽 소리뿐이었다.',went?'돌아오는 길, 노을이 그날과 같은 색이었다.':'돌아오는 길, 다음엔 길을 헤매지 않을 것 같았다.'),[S.childBorn!=null?'haeun':'me',S.childBorn!=null?4:0]);}},
+      {t:'어머니를 모시고 간다',cond:function(){return S.momAlive;},f:function(){fx({'lm.root':10,fam:6,'rel.mom':8});mem('어머니와 아버지 산소에 갔다.','me',0,84,'echo','bg_grave',{q:'아버지가 떠나고 첫 추석.'});
         return res(L('어머니가 산소 앞에서 아버지 이름을 불렀다. 대답이 없어도 한참 이야기하셨다.',S.fm.grave==='went'?'"너랑 같이 왔던 날, 아버지가 그날 저녁 내내 자랑하셨어."':'"아버지가 매년 여기서 네 얘기만 하셨대."'),['me',4]);}}]});
 
 
@@ -882,7 +882,7 @@ E({id:'lee_offer2',type:'major',age:[47,52],corp:1,cond:function(){return (S.fla
 E({id:'budget',type:'mg',mg:'budget',age:[46,48],cond:function(){return S.rank>=3||S.track==='startup';},scene:'meeting',chars:[['ceo',0]],title:'내년 예산',text:L('내년 예산 회의. 부서마다 요구가 다르다.','한정된 돈을 나눠야 한다.')});
 
 /* ===== 제5화 : 47~ ===== */
-E({id:'exec_race',type:'major',age:[47,51],cond:function(){return S.track==='corp'&&S.rank>=4&&S.rank<=5;},scene:'meeting',chars:[['jung',1]],title:'임원 경쟁',
+E({id:'exec_race',type:'major',age:[47,51],cond:function(){return S.track==='corp'&&S.rank===4;},scene:'meeting',chars:[['jung',1]],title:'임원 경쟁',
   text:L('다음 임원 자리는 하나.','후보는 나와 옆 본부 정부장.','@jung1 {N} 부장, 우리 둘 중 하나겠네. 잘해 봅시다. ...물론 내가 되겠지만.','복도에서 정부장의 실수에 대한 소문을 들었다. 회장님 귀에 들어가면 끝이다.'),
   ch:[{t:'회장님께 슬쩍 흘린다',f:function(){note('jung','옆 본부 부장. 임원 자리를 두고 경쟁했다.');S.flags.dirty=1;fx({integ:-15,trust:8,social:-8});S.flags.execBonus=12;mem('정부장의 실수를 회장님께 흘렸다.','ceo',0,70,'career');return res('다음 주 정부장이 지방 발령이 났다. 엘리베이터에서 정부장과 눈이 마주쳤다.',['jung',4]);}},
       {t:'정정당당하게 성과로 간다',f:function(){note('jung','옆 본부 부장. 임원 자리를 두고 경쟁했다.');fx({integ:6,stress:6});S.flags.execBonus=S.flags.pen?6:0;return res(S.flags.pen?'서랍 속 만년필을 꺼내 보았다. "그 종이 뒤에 사람이 있다." 숫자로만 말하기로 했다.':'남은 6개월 동안 숫자로 말하기로 했다.',['me',5]);}},
@@ -895,7 +895,7 @@ E({id:'bong_fishing',type:'major',age:[48,53],cond:function(){return S.rel.bong>
 E({id:'negotiate',type:'mg',mg:'negotiate',age:[47,50],scene:'meeting',chars:[],title:'단가 협상',text:L('거래처와 연간 단가 협상.','밀어붙일 때와 멈출 때를 알아야 한다.')});
 E({id:'burnout',somber:1,type:'major',age:[47,54],fam:1,cond:function(){return S.st.stress>70||S.st.health<38;},scene:'bg_hospital',chars:[],title:'쓰러지다',
   text:L('!회의 중 가슴이 조여왔다.','눈을 떠보니 응급실이었다.','@?의사 과로입니다. 이대로면 다음엔 장담 못 해요.'),
-  ch:[{t:'한 달 휴직한다',f:function(){fx({health:15,stress:-30,trust:-6,fam:6});mem('응급실 천장을 오래 봤다.','me',4,78,'health','bg_hospital');return res('한 달 동안 아침마다 산책을 했다. 서연이 "당신 얼굴이 돌아왔다"고 했다.',['me',0]);}},
+  ch:[{t:'한 달 휴직한다',f:function(){fx({health:15,stress:-30,trust:-6,fam:6});mem('응급실 천장을 오래 봤다.','me',4,78,'health','bg_hospital');return res(S.married&&S.spouseAlive?'한 달 동안 아침마다 산책을 했다. 서연이 "당신 얼굴이 돌아왔다"고 했다.':'한 달 동안 아침마다 산책을 했다. 거울 속 얼굴이 조금씩 돌아왔다.',['me',0]);}},
       {t:'일주일만 쉬고 복귀한다',f:function(){fx({health:5,stress:-8});mem('응급실 천장을 오래 봤다.','me',4,72,'health','bg_hospital');return res('복귀 첫날, 책상 위 결재판이 그대로 쌓여 있었다.',['me',3]);}},
       {t:'다음 날 바로 출근한다',f:function(){fx({health:-8,trust:4});S.flags.ignoreHealth=1;mem('링거를 뽑고 출근했다.','me',3,70,'health');return res('링거 자국을 소매로 가렸다. 아무도 몰랐다. 몸만 알았다.',['me',3]);}}]});
 E({id:'mom_funeral',type:'major',age:[51,56],fam:1,somber:1,cond:function(){return S.momAlive&&!S.dadAlive&&S.age>=(S.flags.dadDiedAge||0)+2;},scene:'bg_funeral',chars:[],title:'어머니',
@@ -903,7 +903,7 @@ E({id:'mom_funeral',type:'major',age:[51,56],fam:1,somber:1,cond:function(){retu
   ch:[{t:'조문객을 맞는다',f:function(){S.momAlive=false;return funeral();}}]});
 function funeral(){
   var t=[], who=null, many=S.st.social>=58;
-  t.push(many?'조문객이 끊이지 않았다. 회사 사람들, 예전 동료들, 거래처 사람들까지.':S.st.social<38?'조문객이 많지 않았다. 회사에서 화환 하나가 왔다.':'회사 사람들이 다녀갔다. 다들 바빠 보였다.');
+  t.push(S.retired?(many?'조문객이 끊이지 않았다. 옛 동료들, 동네 사람들, 멘티들까지.':'조문객은 많지 않았다. 대신 오래 머물다 갔다.'):many?'조문객이 끊이지 않았다. 회사 사람들, 예전 동료들, 거래처 사람들까지.':S.st.social<38?'조문객이 많지 않았다. 회사에서 화환 하나가 왔다.':'회사 사람들이 다녀갔다. 다들 바빠 보였다.');
   if(S.rel.bong>=50){t.push('저녁 무렵, 지팡이 소리가 들렸다.','@bong4 ...왔다. 늦어서 미안하다.','이본일 님이 내 손을 오래 잡았다. 아무 말도 하지 않으셨다.');mem('어머니 장례식. 이본일 님이 손을 오래 잡아 주셨다.','bong',4,86,'bong','bg_funeral');who=['bong',4];}
   if(S.rel.tae>=50) t.push('@tae4 발인까지 필요한 거 있으면 다 말해요. 내가 다 챙길게요.','조태연은 정말로 새벽까지 남아 조문객 명단을 정리해 주었다.');
   t.push('@lee4 너 밥은 먹었어? 이거 먹어. 다 먹을 때까지 안 간다.','이지윤이 국밥 한 그릇을 내 앞에 놓고 옆에 앉았다.');
@@ -919,11 +919,11 @@ E({id:'honorary',type:'major',age:[53,57],corp:1,cond:function(){return S.rank<=
   ch:[{t:'받아들인다',f:function(){S.flags.honoraryAsked=1;S.cash+=Math.round(S.salary*2);S.flags.honorary=1;return res('위로금을 받았다. 아직 쉰을 갓 넘긴 나이. 남은 시간이 길어 보였다.',['me',0],{retire:'명예퇴직'});}},
       {t:'끝까지 버틴다',f:function(){S.flags.honoraryAsked=1;fx({stress:6,trust:-2});return res('창가 자리에서 복도 쪽 자리로 옮겨졌다. 버티기로 했다.',['me',5]);}},
       {t:'이본일 님께 전화를 건다',f:function(){S.flags.honoraryAsked=1;fx({'rel.bong':6,stress:-6});mem('명예퇴직 앞에서 이본일 님께 전화를 걸었다.','bong',4,70,'bong');return res(L('@bong0 나가는 문은 회사가 아니라 네가 고르는 거다.','@bong0 네가 아직 할 일이 남았다고 생각하면, 남아라. 그건 버티는 게 아니라 끝내는 거다.','다음 날, 면담 서류에 "잔류"라고 적었다.'+(S.flags.pen?' 만년필로.':'')),['bong',4]);}}]});
-E({id:'second_life',type:'major',age:[55,57],cond:function(){return !S.retired;},scene:'bg_kitchen',chars:[['seo',0]],title:'그다음',
-  text:L('정년이 몇 년 남지 않았다.','주말 아침, 서연이 물었다.','@seo0 당신, 은퇴하면 뭐 할 거야?'),
+E({id:'second_life',type:'major',age:[55,57],cond:function(){return !S.retired;},scene:'bg_kitchen',chars:function(){return S.married&&S.spouseAlive?[['seo',0]]:[['lee',0]];},title:'그다음',
+  text:function(){return S.married&&S.spouseAlive?L(S.track==='corp'?'정년이 몇 년 남지 않았다.':'어느새 쉰 중반이다.','주말 아침, 서연이 물었다.','@seo0 당신, 은퇴하면 뭐 할 거야?'):L(S.track==='corp'?'정년이 몇 년 남지 않았다.':'어느새 쉰 중반이다.','동기 모임 2차. 이지윤이 잔을 내려놓으며 물었다.','@lee0 너는 은퇴하면 뭐 할 거야?');},
   ch:[{t:'자격증 공부를 시작한다',f:function(){S.flags.cert=1;fx({stress:3,work:2});return res('퇴근 후 독서실에 다녔다. 20대 수험생들 사이에서 혼자 넥타이를 매고 있었다.',['me',5]);}},
       {t:'작은 카페 창업을 준비한다',f:function(){S.flags.cafe=1;return res('주말마다 바리스타 학원에 다녔다. 라떼 아트는 늘 하트가 아니라 감자 모양이었다.',['me',1]);}},
-      {t:'"그냥 쉬고 싶어"',f:function(){fx({stress:-5,'rel.spouse':3});return res('@seo0 그래, 그것도 좋다.',['seo',0]);}}]});
+      {t:'"그냥 쉬고 싶어"',f:function(){fx({stress:-5,'rel.spouse':3});return S.married&&S.spouseAlive?res('@seo0 그래, 그것도 좋다.',['seo',0]):res('@lee1 그래, 그것도 좋다. 대신 동기 모임엔 꼭 나와.',['lee',1]);}}]});
 E({id:'choi_exec',type:'major',age:[56,58],cond:function(){return HB()&&S.choi.in&&S.track==='corp';},scene:'meeting',chars:[['choi',1]],title:'최준',
   text:function(){return S.choi.grat>=30?L('인사 발표. 최준이 상무로 승진했다.','신입 때 복합기를 가르쳐 줬던 그 최준이.','오늘부터 내 위다.'):L('인사 발표. 최준이 상무로 승진했다.','오늘부터 내 위다.');},
   ch:[{t:'진심으로 축하한다',f:function(){fx({integ:3});mem('최준이 상무가 됐다. "선배님 덕분입니다."','choi',1,68,'choi');return res(S.choi.grat>=30?'@choi5 선배님. 그때 대신 혼나 주신 거, 저 평생 안 잊어요.':'최준이 고개를 숙였다.',['choi',S.choi.grat>=30?5:0]);}},
@@ -958,11 +958,11 @@ E({id:'onb3',type:'mg',mg:'phone',age:[27,60],cond:function(){return S.onb===3&&
 /* ===== 실직 (잠시 멈춤) ===== */
 E({id:'jl1',type:'major',age:[27,60],jl:1,cond:function(){return S.jl&&S.jl.m>=1&&!S.jl.told;},scene:'bg_kitchen',chars:function(){return S.married?[['seo',0]]:[];},title:'출근하지 않는 아침',
   text:function(){return S.married?L('아침 7시. 습관처럼 눈이 떠졌다.','서연이 커피를 내리며 물었다.','@seo0 오늘은... 어디 갈 데 있어?'):L('아침 7시. 습관처럼 눈이 떠졌다.','갈 곳이 없다는 걸 깨닫는 데 10초가 걸렸다.');},
-  ch:[{t:function(){return S.married?'"사실대로 다 말할게"':(S.dadAlive?'아버지께 전화해 사실대로 말한다':'어머니께 전화해 사실대로 말한다');},f:function(){S.jl.told=1;fx({stress:-6,fam:4});
+  ch:[{t:function(){return S.married?'"사실대로 다 말할게"':(S.dadAlive?'아버지께 전화해 사실대로 말한다':'어머니께 전화해 사실대로 말한다');},cond:function(){return S.married||S.dadAlive||S.momAlive;},f:function(){S.jl.told=1;fx({stress:-6,fam:4});
         if(S.married) return res(L('@seo0 ...말해줘서 고마워.','@seo1 당신 그동안 쉬지 않았잖아. 좀 쉬어도 돼. 우리 괜찮아.'),['seo',1]);
         if(S.dadAlive){fx({'rel.dad':8});return res(L('@dad0 그래. 고생했다. 그 회사가 너를 몰라본 거다.','@dad0 주말에 밥 먹으러 와라. 목욕탕도 가고.'),['dad',0]);}
         return res('@mom0 그래, 고생했다. 밥 먹으러 와라.',['me',0]);}},
-      {t:'정장을 입고 출근하는 척 나간다',f:function(){S.jl.told=1;fx({stress:6,'rel.spouse':-4});return res(L('도서관에서 하루를 보냈다. 저녁 6시에 "다녀왔어"라고 말했다.','일주일 뒤, 서연이 조용히 말했다. "알고 있었어. 괜찮아."'),['me',4]);}},
+      {t:'정장을 입고 출근하는 척 나간다',f:function(){S.jl.told=1;fx({stress:6,'rel.spouse':-4});return res(S.married?L('도서관에서 하루를 보냈다. 저녁 6시에 "다녀왔어"라고 말했다.','일주일 뒤, 서연이 조용히 말했다. "알고 있었어. 괜찮아."'):L('도서관에서 하루를 보냈다. 저녁 6시, 빈 집에 "다녀왔어"라고 말했다.','대답하는 사람이 없어서, 오히려 숨이 막혔다.'),['me',4]);}},
       {t:'동기 단톡방에 털어놓는다',f:function(){S.jl.told=1;fx({stress:-4,'rel.lee':8});return res(L('@lee3 야! 지금 당장 나와. 내가 밥 산다.','@lee0 그리고 이력서 나한테 보내. 다 고쳐 줄게.'),['lee',3]);}}]});
 E({id:'jl2',type:'major',age:[27,60],jl:1,cond:function(){return S.jl&&S.jl.m>=2&&!S.jl.called;},scene:'cafe',chars:[['tae',0]],title:'조태연의 전화',
   text:L('📱 조태연.','@tae2 {N}씨, 소식 들었어요. 괜찮아요?','@tae0 다음 주에 시간 돼요? 이력서 같이 봐요. 면접 질문도 내가 다 알아요. 20년 인사팀이었잖아.'),
@@ -1064,7 +1064,7 @@ P({id:'ranniv',min:30,max:59,fam:1,cond:function(){return S.married;},scene:'hom
   ch:[{t:'꽃집으로 뛰어간다',f:function(){S.cash-=15;fx({'rel.spouse':5});return res('@seo1 오후에 알았지?',['seo',1]);}},
       {t:'레스토랑을 급히 예약한다',f:function(){S.cash-=25;fx({'rel.spouse':6});return res('남은 자리는 9시 40분뿐이었다. 그래도 좋았다.',['seo',1]);}},
       {t:'주말에 제대로 하자고 한다',f:function(){fx({'rel.spouse':-4});return res('@seo2 응.',['seo',2]);}}]});
-P({id:'rlee_help',min:26,max:46,scene:'office',chars:[['lee',2]],title:'탕비실',cond:function(){return S.st.stress>45;},text:L('{B}에게 한참 깨지고 탕비실에 숨었다.','누군가 문을 열고 들어왔다. 이지윤이었다.','@lee2 ...다 들었어. 괜찮아?'),
+P({id:'rlee_help',min:26,max:46,scene:'office',chars:[['lee',2]],title:'탕비실',cond:function(){return S.st.stress>45&&((S.company==='행복산업'&&S.lee.stage!=='left')||S.company==='세진전자');},text:L('{B}에게 한참 깨지고 탕비실에 숨었다.','누군가 문을 열고 들어왔다. 이지윤이었다.','@lee2 ...다 들었어. 괜찮아?'),
   ch:[{t:'"괜찮아"라고 웃는다',f:function(){fx({'rel.lee':6,stress:-6});return res('@lee1 거짓말. 자, 초콜릿. 이건 진짜 괜찮아지는 거야.',['lee',1]);}},
       {t:'솔직하게 하소연한다',f:function(){fx({'rel.lee':10,stress:-10});return res(L('10분 동안 쏟아냈다. 이지윤은 끝까지 다 들어줬다.','@lee3 됐어! 다 뱉었으니까 이제 가서 이기고 와!'),['lee',3]);}},
       {t:'혼자 있고 싶다고 한다',f:function(){fx({'rel.lee':2,stress:-3});return res('이지윤은 말없이 따뜻한 커피를 놓고 나갔다. 컵에 포스트잇: "넌 잘하고 있어"',['me',0]);}}]});
@@ -1084,7 +1084,7 @@ P({id:'rhwacance',min:26,max:59,scene:'office',chars:[],title:'오후 3시',text
   ch:[{t:'화장실 칸에서 3분 쉰다',f:function(){fx({stress:-3});return res('아무도 말을 걸지 않는 3분. 화캉스.',['me',0]);}},
       {t:'옥상에 바람 쐬러 간다',f:function(){fx({stress:-4});return res('하늘이 넓었다. 내려오니 메신저가 12개.',['me',0]);}},
       {t:'커피를 한 잔 더',f:function(){fx({stress:-1,health:-1});return res('오늘의 네 번째 커피.',['me',3]);}}]});
-P({id:'rbong_note',min:27,max:42,scene:'office',chars:[['bong',1]],title:'포스트잇',text:L('출근해 보니 모니터에 포스트잇 한 장.','"어제 회의 때 네 발표, 3층까지 소문났다. 잘했다. -이본일"'),
+P({id:'rbong_note',min:27,max:42,cond:function(){return HB()&&!S.flags.bongRetired;},scene:'office',chars:[['bong',1]],title:'포스트잇',text:L('출근해 보니 모니터에 포스트잇 한 장.','"어제 회의 때 네 발표, 3층까지 소문났다. 잘했다. -이본일"'),
   ch:[{t:'수첩에 붙여 둔다',f:function(){fx({'rel.bong':6,stress:-4});return res('그 포스트잇은 20년 뒤에도 수첩 첫 장에 있었다.',['me',1]);}},
       {t:'답장 포스트잇을 붙이러 간다',f:function(){fx({'rel.bong':8});return res('@bong1 허허, 포스트잇 핑퐁이냐. 좋다.',['bong',1]);}},
       {t:'컵라면 하나를 사서 책상에 둔다',f:function(){fx({'rel.bong':8});return res('"국물은 남겨라. -이본일" 답이 왔다.',['bong',1]);}}]});
@@ -1096,7 +1096,7 @@ P({id:'rkimd_lunch',min:27,max:33,cond:HB,scene:'office',chars:[['kimd',1]],titl
   ch:[{t:'이번에도 대신 낸다',f:function(){S.cash-=1;return res('김대리 국밥값 9천 원. 이걸로 세 번째다.',['me',3]);}},
       {t:'"김대리님 거 송금 부탁드려요~"',f:function(){fx({social:1});return res(L('단톡방에 계좌번호를 올렸다.','10분 뒤 9,000원이 들어왔다. 메모: "ㅋㅋ 깐깐하네"'),['kimd',0]);}},
       {t:'이지윤과 눈빛을 교환한다',f:function(){fx({'rel.lee':3});return res('@lee1 (작게) 다음부턴 우리 둘이 먼저 나가자.',['lee',1]);}}]});
-P({id:'rhan_gossip',min:30,max:50,corp:1,scene:'office',chars:[['lee',2]],title:'뒷말',text:L('탕비실 밖에서 옆 팀 한과장 목소리가 들렸다.','@?한과장 {N} 걔 요즘 이직 준비한다던데? 면접 보러 다닌대.','...사실이 아니다.'),
+P({id:'rhan_gossip',min:30,max:50,corp:1,scene:'office',chars:function(){return (S.company==='행복산업'&&S.lee.stage!=='left')||S.company==='세진전자'?[['lee',2]]:[];},title:'뒷말',text:L('탕비실 밖에서 옆 팀 한과장 목소리가 들렸다.','@?한과장 {N} 걔 요즘 이직 준비한다던데? 면접 보러 다닌대.','...사실이 아니다.'),
   ch:[{t:'들어가서 웃으며 바로잡는다',f:function(){fx({social:3,trust:1});return res(L('@me1 한과장님, 저 아직 여기서 오래 다닐 건데요?','한과장이 커피를 쏟을 뻔했다.'),['me',1]);}},
       {t:'못 들은 척한다',f:function(){fx({stress:3});return res(L('그날 오후, 이지윤에게 메신저가 왔다.','@lee0 한과장 얘기 들었어. 내가 "걔 이번 프로젝트 끝까지 책임진대요" 하고 정리해 놨어. 신경 쓰지 마.'),['lee',1]);}},
       {t:'이지윤에게 털어놓는다',f:function(){fx({'rel.lee':5,stress:-3});return res('@lee3 한과장 원래 저래! 그 사람 말 믿는 사람 아무도 없어. 오늘 떡볶이 콜?',['lee',3]);}}]});
@@ -1193,17 +1193,17 @@ var FOLLOW={
  park_mistake:[['확인을 못',['박대리가 그 주 내내 커피를 샀다. 다섯 잔째에 그만 사라고 했다.','박대리와 점심을 같이 먹는 날이 많아졌다.']],['사실대로',['박대리와 엘리베이터에서 마주쳤다. 둘 다 층수 버튼만 봤다.','며칠 뒤 박대리가 먼저 "커피 한잔해요"라고 했다. 조금 풀렸다.']]],
  first_eval:[['',['평가표를 서랍에 넣었다. 내년엔 다를 거라고 생각했다.']]],
  f_baseball:[['같이 간다',['지갑 사진 칸에 야구 입장권 반쪽을 끼워 두었다. 나머지 반쪽은 아버지가 가져가셨다.','아버지에게서 문자가 왔다. "하이라이트 봤냐. 우리 중계에 나왔더라."']],['',['그 주 일요일 저녁, 아버지는 야구 얘기를 꺼내지 않으셨다. 뉴스만 보셨다.']]],
- blind_date:[['좋아요',['서연과의 메시지 알림음을 따로 설정했다.','서연이 회사 앞으로 커피를 들고 왔다. 김대리가 한참 놀렸다.']]],
+ blind_date:[['좋아요',['서연과의 메시지 알림음을 따로 설정했다.','서연이 회사 앞으로 커피를 들고 왔다. 김대리가 한참 놀렸다.'],function(){return S.dating;}]],
  bong_claim:[['',['거래처 담당자가 다시 전화를 걸어왔다. "그 이부장님 팀이죠? 앞으로 잘 부탁해요."']]],
  dad60:[['야근',['다음 주말, 본가에 케이크를 다시 사 들고 갔다. 아버지가 "벌써 먹었다"면서 두 조각을 드셨다.']],['사정을',['아버지가 가족 단톡방에 처음으로 이모티콘을 보냈다. 엄지 척.']]],
  kim_blame:[['놓쳤습니다',['그 주 금요일, 김부장이 말없이 내 몫까지 점심값을 냈다.']]],
  kimd_steal:[['참고',['그 뒤로 모든 보고서는 팀 전체 메일로 먼저 보냈다. 이지윤이 알려 준 대로.']],['정정',['회의 뒤로 김대리는 내 자료에 손대지 않았다. 대신 인사도 짧아졌다.']]],
  lee_quit:[['"가.',['이지윤의 빈자리에 새 사람이 왔다. 매점 간식은 이제 내가 두 개씩 산다.','이지윤에게서 메시지가 왔다. "새 회사 첫날! 너 생각나서 사진 보낸다."']]],
- propose:[['반지',['신혼집 현관에 서연과 고른 신발장이 들어왔다.','결혼식 사진 액자를 책상 위에 올려 두었다.']]],
+ propose:[['반지',['신혼집 현관에 서연과 고른 신발장이 들어왔다.','결혼식 사진 액자를 책상 위에 올려 두었다.'],function(){return S.married;}]],
  propose2:[['하자',['신혼집 현관에 서연과 고른 신발장이 들어왔다.']]],
  park_startup:[['같이 간다',['넥스트스텝 첫 월급날. 박대표가 직접 봉투에 넣어 줬다. 금액보다 봉투가 더 컸다.','책상 세 개짜리 사무실에서 매일 밤 11시까지 불이 켜져 있었다.']],['투자',['박대리가 매달 회사 소식을 보내왔다. "형, 이번 달 첫 고객 생겼어요!"']],['응원',['박대리 자리에 다른 사람이 앉았다. 커피 내기는 이제 내가 진다.']]],
  f_bath:[['같이 간다',['다음 주에도 아버지가 전화를 하셨다. "이번 주도 가냐?" 웃음이 났다.']],['',['일요일 아침이면 가끔 현관 쪽에서 "목욕탕이나..." 하는 목소리가 들리는 것 같았다.']]],
- baby:[['',['하은이 백일 사진을 모니터 옆에 붙였다.','하은이를 처음 안아 본 아버지가 한동안 말을 못 하셨다.']]],
+ baby:[['',['하은이 백일 사진을 모니터 옆에 붙였다.','하은이를 처음 안아 본 아버지가 한동안 말을 못 하셨다.'],function(){return S.childBorn!=null&&S.dadAlive;},15],['',[]]],
  overseas:[['간다',['하노이에서 첫 보고서를 보냈다. 조태연에게서 답장이 왔다. "잘 지내요? 밥 꼭 챙겨 먹어요."','아버지가 국제전화 요금이 비싸다며 문자로만 안부를 물으셨다. 문자가 길었다.']]],
  choi_join:[['',['최준의 수첩 첫 장에 내 이름과 내선번호가 적혀 있었다.']]],
  bong_promo:[['본부로',['신사업본부의 첫 회의. 이상무님은 회의 시작 전에 모두의 이름을 한 번씩 불렀다.']],['잘할 수',['신사업본부의 첫 회의. 이상무님은 회의 시작 전에 모두의 이름을 한 번씩 불렀다.']]],
@@ -1217,13 +1217,13 @@ var FOLLOW={
  mom_funeral:[['',['어머니 휴대폰 사진첩에 내 사진이 수백 장 있었다. 대부분 내가 모르는 각도였다.']]],
  lee_back:[['그때',['업계 신문에 실린 기사를 오려 이지윤에게 보냈다. "우리 나왔다."']]],
  honorary:[['버틴다',['복도 쪽 자리에도 해는 들어왔다. 오후 네 시쯤, 잠깐.']]],
- second_life:[['',['서연이 달력에 "은퇴까지 D-"를 적어 두었다.']]],
+ second_life:[['',['서연이 달력에 "은퇴까지 D-"를 적어 두었다.'],function(){return S.married&&S.spouseAlive;}]],
  choi_exec:[['',['최준이 상무실 문을 늘 열어 두었다. "선배님은 노크 안 하셔도 돼요."']]],
  dad_things:[['',['아버지 번호를 아직 지우지 못했다. 가끔 프로필 사진을 눌러 본다.']]]
 };
 function queueFollow(ev,ct){
   var f=FOLLOW[ev.id]; if(!f) return;
-  for(var i=0;i<f.length;i++){ if(!f[i][0]||ct.indexOf(f[i][0])>=0){ var ls=f[i][1]; S.fq=S.fq||[]; ls.forEach(function(t,j){S.fq.push({t:J(t),at:S.tick+1+j*2});}); return; } }
+  for(var i=0;i<f.length;i++){ if(!f[i][0]||ct.indexOf(f[i][0])>=0){ if(f[i][2]&&!f[i][2]()) return; var ls=f[i][1], d0=f[i][3]||1; S.fq=S.fq||[]; ls.forEach(function(t,j){S.fq.push({t:J(t),at:S.tick+d0+j*2});}); return; } }
 }
 function applyChoice(ev,idx){
   var ch=visibleChoices(ev)[idx], n0=S.mem.length, ct=choiceText(ch);
@@ -1273,12 +1273,15 @@ function mgResult(id,score){
 var RET=[]; function R(o){RET.push(o);}
 function rel(){return S.age-S.retireAge;}
 R({id:'r_dad_last',somber:1,cond:function(){return S.dadAlive;},scene:'bg_hospital',chars:[['dad',8]],title:'아버지',
-  text:L('은퇴하고 맞은 첫 겨울.','@?의사 오늘 밤을 넘기기 어려우실 것 같습니다.','이번엔 비행기도, 서명식도 없었다.'),
+  text:L('은퇴하고 맞은 첫 겨울.','@?의사 오늘 밤을 넘기기 어려우실 것 같습니다.','회사도, 출장도 없었다. 처음으로, 시간이 있었다.'),
   ch:[{t:'아버지 손을 잡는다',f:function(){S.dadAlive=false;S.flags.dadDiedAge=S.age;S.flags.dadDiedTick=S.tick;S.flags.dadNight=1;fx({'rel.dad':20,'lm.family':8});mem('아버지 마지막 밤. "고생했다, 아들."','dad',4,97,'dad','bg_hospital');return res(L('밤새 아버지 손을 잡고 있었다.','@dad8 ...회사 그만두고 나니까, 얼굴 자주 봐서 좋더라.','@dad8 고생했다, 아들. 밥 잘 챙겨 먹어라.','그게 마지막 말이었다.'),['me',4]);}},
       {t:'옛날 얘기를 꺼낸다',f:function(){S.dadAlive=false;S.flags.dadDiedAge=S.age;S.flags.dadDiedTick=S.tick;S.flags.dadNight=1;fx({'rel.dad':20,'lm.family':10});mem('아버지 마지막 밤. 옛날 얘기를 했다.','dad',4,97,'dad','bg_hospital');
         var t=S.fm.bb==='went'?'"아버지, 그때 야구장 9회 말 기억나세요?"':S.fm.bath==='went'?'"아버지, 바나나우유 또 사 드릴게요."':'"아버지, 할머니 산소 길, 이제 제가 운전할게요."';
         return res(L(t,'아버지가 눈을 감은 채 작게 웃었다.','@dad8 ...그래. 좋았지.','새벽, 아버지는 웃는 얼굴 그대로 잠드셨다.'),['me',4]);}}]});
 R({id:'r_dad_things',somber:1,cond:function(){return !S.dadAlive&&S.flags.dadDiedTick!=null&&!S.done.dad_things;},scene:'bg_home',chars:[['me',4]],title:'유품',text:function(){S.done.dad_things=1;return dadThings().text;},ch:[{t:'지갑을 열어 본다',f:function(){return dadThings().ch[0].f();}},{t:'휴대폰을 켜 본다',f:function(){return dadThings().ch[1].f();}},{t:'그대로 상자에 넣어 둔다',f:function(){return dadThings().ch[2].f();}}]});
+R({id:'r_mom',somber:1,cond:function(){return S.momAlive&&(S.age>=66||(!S.dadAlive&&S.flags.dadDiedAge!=null&&S.age>=S.flags.dadDiedAge+3));},scene:'bg_funeral',chars:[],title:'어머니',
+  text:function(){return L(S.age>=62?'어머니가 돌아가셨다. 아흔을 넘기신 봄이었다.':'어머니가 돌아가셨다. 아버지를 보내고 몇 해 지나지 않은 봄이었다.','장례식장. 영정 사진 속 어머니가 웃고 계셨다.',S.dadAlive?'':'이제 아버지 곁으로 가신다.');},
+  ch:[{t:'조문객을 맞는다',f:function(){S.momAlive=false;return funeral();}}]});
 R({id:'r_morning',cond:function(){return rel()<=1;},scene:'bg_home',chars:[['me',0]],title:'출근하지 않는 아침',
   text:L('은퇴 첫 주. 아침 6시 50분에 눈이 떠졌다.','30년 넘게 맞춰진 몸이다. 갈 곳이 없는데.'),
   ch:[{t:'동네 한 바퀴 산책을 습관으로 만든다',f:function(){S.flags.walk=1;S.lifeAdj+=2;fx({health:6,stress:-8});return res('매일 아침 같은 길을 걸었다. 빵집 사장님이 먼저 인사를 했다.',['me',1]);}},
@@ -1319,7 +1322,7 @@ R({id:'r_bath2',cond:function(){return S.fm.bath&&rel()>=2&&rel()<=10;},scene:'b
         return res(L('목욕을 마치고, 우유 냉장고 앞.',S.childBorn!=null?'손주 손에 바나나우유를 쥐여 주었다.':'바나나우유 두 개를 꺼냈다.','"역시 목욕하고 나오면 개운하지?"','아버지가 하던 말이, 그대로 내 입에서 나왔다.'),['me',1]);}},
       {t:'가지 않는다',f:function(){return res('간판이 내려가는 날, 길 건너에서 오래 지켜보았다.',['me',4]);}}]});
 R({id:'r_spouse',cond:function(){return S.married&&S.spouseAlive&&rel()>=1&&rel()<=8;},scene:'bg_home',chars:[['seo',1]],title:'둘만의 시간',
-  text:L('하은이도 독립하고, 집에 둘만 남았다.','@seo0 우리 이제 뭐 하고 살까?'),
+  text:function(){return L(S.childBorn!=null?'하은이도 독립하고, 집에 둘만 남았다.':'회사도 끝나고, 집에 둘만 남았다.','@seo0 우리 이제 뭐 하고 살까?');},
   ch:[{t:'한 달 살기 여행을 간다',f:function(){fx({'rel.spouse':10,fam:8,stress:-6});mem('서연과 제주도 한 달 살기. 매일 같은 바다를 봤는데 매일 달랐다.','seo',4,85,'seo','bg_park');return res('매일 같은 바다를 봤는데 매일 달랐다. 서연이 "우리 신혼 같다"고 했다.',['seo',1]);}},
       {t:'각자 취미를 존중한다',f:function(){fx({'rel.spouse':4,stress:-4});return res('서연은 수채화를, 나는 바둑을 시작했다. 저녁엔 서로의 하루를 이야기했다.',['seo',1]);}},
       {t:'함께 봉사를 다닌다',f:function(){fx({'rel.spouse':8,integ:4,social:4});return res('무료 급식소에서 같이 앞치마를 맸다. 서연이 국자를 들고 웃었다.',['seo',3]);}}]});
@@ -1365,7 +1368,7 @@ R({id:'r_pen',cond:function(){return S.flags.pen&&S.age>=70;},scene:'bg_home',ch
       {t:'첫 출근하는 청년에게 보낸다',f:function(){S.flags.penTo='mentee';mem('만년필을 첫 출근하는 청년에게 보냈다.','me',1,85,'bong');return res('포장 상자에 메모를 넣었다. "이 펜은 세 번째 주인을 찾아가는 중입니다."',['me',1]);}},
       {t:'내가 간직한다',f:function(){S.flags.penTo='me';return res('만년필을 다시 서랍에 넣었다. 대신 오늘 일기는 이걸로 썼다.',['me',0]);}}]});
 R({id:'r_memoir',cond:function(){return S.age>=72;},scene:'bg_home',chars:[['me',0]],title:'자서전',
-  text:L('하은이 노트북을 사 주며 말했다. "아빠 얘기 좀 써 봐."','첫 줄을 쓰고 한참을 멈췄다.','제목을 무엇으로 할까.'),
+  text:function(){return L(S.childBorn!=null?'하은이 노트북을 사 주며 말했다. "아빠 얘기 좀 써 봐."':'이지윤이 노트북을 내밀며 말했다. "네 얘기 좀 써 봐. 내가 첫 독자 할게."','첫 줄을 쓰고 한참을 멈췄다.','제목을 무엇으로 할까.');},
   ch:[{t:'「보통의 회사원」',f:function(){S.memoir='보통의 회사원';fx({stress:-4});return res('보통이라고 썼지만, 쓰다 보니 하나도 보통이 아니었다.',['me',1]);}},
       {t:'「평범했던 하루」',f:function(){S.memoir='평범했던 하루';return res('첫 장은 야구장, 둘째 장은 목욕탕, 셋째 장은 할머니 산소 가는 길이었다. 회사 얘기는 넷째 장부터였다.',['me',1]);}},
       {t:'「고마운 사람들」',f:function(){S.memoir='고마운 사람들';return res('목차가 사람 이름이었다. 아버지, 이본일, 조태연, 이지윤, 그리고...',['me',1]);}}]});
@@ -1377,7 +1380,7 @@ R({id:'r_bong_last',cond:function(){return S.rel.bong>=60&&S.age>=63&&S.age<=68;
 R({id:'r_spouse_loss',somber:1,cond:function(){return S.married&&S.spouseAlive&&S.age>=72&&S.st.health<55&&chance(0.5);},scene:'bg_funeral',chars:[['me',4]],title:'서연',
   text:L('서연이 먼저 떠났다.','장례식장, 영정 속 서연이 웃고 있다. 결혼식 날처럼.'),
   ch:[{t:'끝까지 곁을 지킨다',f:function(){S.spouseAlive=false;mem('서연을 보냈다.','seo',4,95,'seo','bg_funeral');return res(L('@lee4 ...밥 먹어. 서연이가 너 밥 굶는 거 제일 싫어했어.','이지윤이 30년 전처럼 국밥을 내밀었다.'),['lee',5]);}}]});
-R({id:'r_last',cond:function(){return S.age>=S.deathAge+S.lifeAdj-1;},scene:'bg_park',chars:[['me',0]],title:'마지막 봄',
+R({id:'r_last',cond:function(){return S.age>=S.deathAge+S.lifeAdj-1;},scene:'bg_school',chars:[['me',0]],title:'마지막 봄',
   text:L('벚꽃이 피었다. 이상하게 올봄은 꼭 누군가를 만나고 싶었다.'),
   ch:[{t:'가족과 꽃구경을 간다',f:function(){fx({fam:6});mem('마지막 봄, 가족과 벚꽃길을 걸었다.','me',1,88,'last','bg_school');return res('벚꽃길을 천천히 걸었다. '+(S.childBorn!=null?'손주가 꽃잎을 주워 내 주머니에 넣었다.':'꽃잎이 어깨에 내려앉았다.'),['me',1]);}},
       {t:'옛 동료들을 부른다',f:function(){fx({social:6});mem('마지막 봄, 옛 동료들과 포장마차에 앉았다.','lee',5,86,'last','bg_pub');return res(L('포장마차 하나가 꽉 찼다.','@lee1 건배사는 당연히 너지.','"국물은 남기고, 사람은 남기자."'),['lee',1]);}},
@@ -1397,12 +1400,13 @@ function retiredStep(){
   if(S.married&&S.spouseAlive) S.rel.spouse=cl(S.rel.spouse+1,0,100);
   S.cash+=Math.round(1800*0.9-(S.married&&S.spouseAlive?2300:1500));
   var ch=S.chq.length?S.chq.shift():null;
-  if(S.age>=S.deathAge+S.lifeAdj&&S.age>=S.retireAge+6) return {death:true,lines:[],chapter:ch};
+  if(S.age>=S.deathAge+S.lifeAdj&&S.age>=S.retireAge+6&&(S.done.r_last||S.age>=S.deathAge+S.lifeAdj+2)) return {death:true,lines:[],chapter:ch};
   var lines=[pick(RLOG)];
   if(S.pet&&rel()===6) lines.push('보리가 무지개다리를 건넜다. 산책 시간이 되면 아직도 현관을 본다.');
   if(rel()===3&&S.fm.bath==='went') lines.push('편의점에서 바나나우유를 샀다. 일요일 아침이었다.');
   var c=RET.filter(function(e){return !S.done[e.id]&&(!e.cond||e.cond());});
-  var ev=null; if(c.length&&chance(0.85)){ev=c[0];S.done[ev.id]=1;}
+  var pri=c.filter(function(e){return e.id==='r_last'||e.id==='r_dad_last'||e.id==='r_mom';})[0];
+  var ev=null; if(pri){ev=pri;S.done[ev.id]=1;} else if(c.length&&chance(0.85)){ev=c[0];S.done[ev.id]=1;}
   return {lines:lines.map(J),ev:ev,chapter:ch};
 }
 function deathScene(){
@@ -1437,6 +1441,7 @@ var CAREER=[
   {id:'bujang',t:'부장으로 정년',d:'끝까지 걸어온 사람. 그것만으로도 대단한 일이다.',c:function(){return S.rankMax===4;}},
   {id:'hopper',t:'명함이 많은 사람',d:'명함이 여러 장이었다. 그만큼 많은 사람을 만났다.',c:function(){return S.moves>=3;}},
   {id:'chajang',t:'끝까지 버틴 사람',d:'화려하진 않았지만 매일 출근했다.',c:function(){return S.rankMax===3;}},
+  {id:'silmu',t:'끝까지 실무자',d:'직함은 끝내 오르지 않았다. 대신 누구보다 일을 잘 아는 사람이었다.',c:function(){return S.rankMax<=1;}},
   {id:'manwon',t:'만년 과장',d:'승진은 늦었다. 대신 다른 것들을 놓치지 않았을지도.',c:function(){return true;}}
 ];
 function allWent(){return S.fm.bb==='went'&&S.fm.bath==='went'&&S.fm.grave==='went';}
@@ -1545,7 +1550,7 @@ G.phone=function(o){
   intro('전화 응대','전화를 받고 담당자의 내선번호를 눌러 연결하세요.\n번호는 포스트잇에 있어요.'+(o.second?'\n\n...이제 외웠죠?':'')+'\n늦으면 상대가 짜증을 냅니다.',next);
 };
 G.coffee=function(o){
-  var prefs=S().prefs.coffee, ppl=Object.keys(prefs), menus=['아메리카노','카페라떼','바닐라라떼','콜드브루','녹차라떼'], show=o.second?1100:2300;
+  var prefs=S().prefs.coffee, ppl=Object.keys(prefs).filter(function(p){var k=prefs[p].k;if(k==='park'&&S().park.stage!=='colleague')return false;if(k==='lee'&&S().lee.stage==='left')return false;return true;}), menus=['아메리카노','카페라떼','바닐라라떼','콜드브루','녹차라떼'], show=o.second?1100:2300;
   var stage=h('div','');stage.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px';ar.appendChild(stage);
   function phase1(){var i=0;(function n(){if(i>=ppl.length)return phase2();var p=ppl[i],pr=prefs[p];stage.innerHTML='';
       var sp=h('img','bob');sp.src=A(ENG.sprKey(pr.k||'ceo',1));sp.style.height='170px';stage.appendChild(sp);
@@ -1597,23 +1602,23 @@ G.excel=wrap('엑셀 정산','단가 × 수량 = 금액.\n노란 줄의 금액�
   var opts=h('div','opts');opts.style.cssText='position:absolute;left:0;right:0;bottom:8px';ar.appendChild(opts);
   var boss=h('img','');boss.src=A(ENG.sprKey('boss',0));boss.style.cssText='position:absolute;right:8px;bottom:-140px;height:150px;transition:bottom .4s;z-index:5';ar.appendChild(boss);
   function draw(){tb.innerHTML='<tr><th></th><th>A 품목</th><th>B 단가</th><th>C 수량</th><th>D 금액</th></tr>'+rows.map(function(r,i){return '<tr class="'+(i===qi?'cur':'')+'"><th>'+(i+2)+'</th><td style="text-align:left">'+r.n+'</td><td>'+r.p.toLocaleString()+'</td><td>'+r.q+'</td><td class="'+(i===qi?'q':'')+'">'+(i<qi?r.a.toLocaleString():i===qi?'?':'')+'</td></tr>';}).join('');fxb.textContent='D'+(qi+2)+'  =B'+(qi+2)+'*C'+(qi+2);}
-  var tq,t0;
-  function ask(){if(qi>=N)return finish(score/N);draw();var r=rows[qi];var c=[r.a,r.a+r.p,r.a-r.p,r.a+(hard?r.q*10:10*r.q)];c=c.filter(function(v,i,a){return a.indexOf(v)===i&&v>0;});while(c.length<4)c.push(r.a+rnd(1,9)*10);c=shuf(c);
+  var tq,t0,ansLock=false;
+  function ask(){ansLock=false;if(qi>=N)return finish(score/N);draw();var r=rows[qi];var c=[r.a,r.a+r.p,r.a-r.p,r.a+(hard?r.q*10:10*r.q)];c=c.filter(function(v,i,a){return a.indexOf(v)===i&&v>0;});while(c.length<4)c.push(r.a+rnd(1,9)*10);c=shuf(c);
     opts.innerHTML='';c.forEach(function(v){var b=h('button','btn',v.toLocaleString());b.onclick=function(){ans(v===r.a);};opts.appendChild(b);});
     t0=Date.now();var lim=(hard?9000:6500)*bonus();boss.style.bottom='-140px';tq=T(function(){ans(false,true);},lim);T(function(){if(qi<N)boss.style.bottom='-60px';},lim*0.55);}
-  function ans(ok,to){clearTimeout(tq);if(ok){score+=((Date.now()-t0)<3000?1:0.8);snd('hit');fb('정답');}else{snd('miss');fb(to?'시간 초과':'틀림','#c22');if(to)press(ENG.bossName()+': "아직이야?"',true);}qi++;T(function(){unpress();ask();},450);}
+  function ans(ok,to){if(ansLock)return;ansLock=true;clearTimeout(tq);if(ok){score+=((Date.now()-t0)<3000?1:0.8);snd('hit');fb('정답');}else{snd('miss');fb(to?'시간 초과':'틀림','#c22');if(to)press(ENG.bossName()+': "아직이야?"',true);}qi++;T(function(){unpress();ask();},450);}
   ask();
 });
 G.mail=wrap('메일 분류','쏟아지는 메일을 빠르게 분류하세요.\n규칙은 포스트잇에.',function(){
   var B=ENG.bossName();
   var pool=[['상사','[긴급] 오늘까지 회신 부탁','긴급'],['고객사 한빛','납품 일정 확인 요청 (오늘까지)','긴급'],[B,'잠깐 와볼래?','긴급'],['인사팀','[참조] 하반기 교육 일정 안내','참조'],['총무팀','[참조] 주차장 공사 안내','참조'],['옆 팀 정과장','[참조] 회의록 공유','참조'],['쇼핑몰','★오늘만 90% 할인★','스팸'],['이벤트','축하합니다! 당첨되셨습니다','스팸'],['광고','(광고) 대출 한도 조회','스팸'],['동기 이지윤','점심 뭐 먹어?','나중에'],['사내 동호회','등산 모임 회원 모집','나중에'],['IT팀','비밀번호 변경 안내 (다음 달)','나중에'],['협력사','다음 주 미팅 일정 문의','나중에'],['고객사 대성','[긴급] 클레임 접수','긴급']];
-  var mails=shuf(pool).slice(0,12),i=0,ok=0,tq,unread=0;
+  var mails=shuf(pool).slice(0,12),i=0,ok=0,tq,unread=0,lock=false;
   ar.appendChild(h('div','','<div style="background:#ffe76b;margin:10px 12px 0;padding:8px;font-size:12px;line-height:1.5;transform:rotate(-1deg)">📝 상사·고객사·[긴급]·오늘까지 → <b>긴급</b> / [참조] → <b>참조</b><br>광고·할인·당첨 → <b>스팸</b> / 나머지 → <b>나중에</b></div>'));
   var hold=h('div','');ar.appendChild(hold);var badge=h('div','');badge.style.cssText='text-align:center;font-size:13px;color:#c22;font-weight:700;height:18px';ar.appendChild(badge);
   var gr=h('div','grid4');ar.appendChild(gr);
   ['긴급','참조','나중에','스팸'].forEach(function(c){var b=h('button','btn',{'긴급':'🔥 긴급','참조':'👀 참조','나중에':'📥 나중에','스팸':'🗑️ 스팸'}[c]);b.onclick=function(){pick(c);};gr.appendChild(b);});
-  function show(){if(i>=mails.length)return finish(ok/mails.length);var m=mails[i];hold.innerHTML='';hold.appendChild(h('div','mailrow','<div class="f">보낸사람: '+m[0]+'</div><div class="s">'+m[1]+'</div>'));snd('msg');tq=T(function(){pick(null);},Math.max(2400,4300-i*150)*bonus());}
-  function pick(c){clearTimeout(tq);var m=mails[i];if(c===m[2]){ok++;snd('hit');}else{snd('miss');fb(c?'아닌데':'놓침','#c22');if(m[2]==='긴급')press('📞 "메일 확인 안 하세요?"',true);}i++;unread+=rnd(1,3);badge.textContent='💬 메신저 '+unread;T(function(){unpress();show();},250);}
+  function show(){lock=false;if(i>=mails.length)return finish(ok/mails.length);var m=mails[i];hold.innerHTML='';hold.appendChild(h('div','mailrow','<div class="f">보낸사람: '+m[0]+'</div><div class="s">'+m[1]+'</div>'));snd('msg');tq=T(function(){pick(null);},Math.max(2400,4300-i*150)*bonus());}
+  function pick(c){if(lock||i>=mails.length)return;lock=true;clearTimeout(tq);var m=mails[i];if(c===m[2]){ok++;snd('hit');}else{snd('miss');fb(c?'아닌데':'놓침','#c22');if(m[2]==='긴급')press('📞 "메일 확인 안 하세요?"',true);}i++;unread+=rnd(1,3);badge.textContent='💬 메신저 '+unread;T(function(){unpress();show();},250);}
   show();
 });
 G.typo=wrap('오타 찾기','보고서에 숨어 있는 오타·숫자 실수 4개를 찾아 터치하세요.\n아무 데나 누르면 감점!',function(){
@@ -1631,11 +1636,11 @@ G.file=wrap('파일 찾기','상사가 말하는 정확한 파일을 찾으세�
   var rounds=[{q:'3월 15일에 수정한 "기획안 최종" 엑셀',ans:'기획안_최종_수정.xlsx|03-15',list:[['기획안_최종.xlsx','03-12'],['기획안_최종_수정.xlsx','03-15'],['기획안_진짜최종.xlsx','03-14'],['기획안_최종_v8.xlsx','03-16'],['기획안_최종_수정본.pptx','03-15'],['기획안_최종_부장님수정.xlsx','03-13']]},
     {q:'"부장님 수정" 들어간 가장 최근 "예산안" 엑셀',ans:'예산안_부장님수정2.xlsx|04-02',list:[['예산안_부장님수정.xlsx','03-28'],['예산안_부장님수정2.xlsx','04-02'],['예산안_부장님수정2.pptx','04-03'],['예산안_최종.xlsx','04-05'],['예산안_부장님수정_취소.xlsx','04-01'],['예산안_수정.xlsx','04-02']]},
     {q:'4월 20일 회의록 "확정" 버전 PDF',ans:'회의록_0420_확정.pdf|04-20',list:[['회의록_0420.docx','04-20'],['회의록_0420_확정.docx','04-20'],['회의록_0420_확정.pdf','04-20'],['회의록_0420_확정안.pdf','04-21'],['회의록_0413_확정.pdf','04-13'],['회의록_최종.pdf','04-22']]}];
-  var ri=0,score=0,tq,sc=h('div','screen');var inn=h('div','in');sc.appendChild(inn);sc.style.top='70px';ar.appendChild(sc);
+  var ri=0,score=0,tq,flock=false,sc=h('div','screen');var inn=h('div','in');sc.appendChild(inn);sc.style.top='70px';ar.appendChild(sc);
   var q=h('div','bubble','');q.style.cssText='position:absolute;top:8px;left:10px;right:10px;font-size:14px';ar.appendChild(q);
-  function show(){if(ri>=rounds.length)return finish(score/rounds.length);var R=rounds[ri];q.textContent='"'+R.q+' 줘!"';inn.innerHTML='<div class="xlbar" style="background:#555">📁 공유폴더 > 팀 > 기획</div>';
-    shuf(R.list).forEach(function(f){var d=h('div','file','<span>'+(f[0].indexOf('.pdf')>0?'📕':f[0].indexOf('.ppt')>0?'📙':f[0].indexOf('.doc')>0?'📘':'📗')+'</span><span>'+f[0]+'</span><span class="dt">수정 '+f[1]+'</span>');d.onclick=function(){clearTimeout(tq);if((f[0]+'|'+f[1])===R.ans){score++;snd('hit');fb('이거다!');}else{snd('bad');fb('그거 아니야!','#c22');press('"그거 아니잖아! 최종본!"',true);}ri++;T(function(){unpress();show();},600);};inn.appendChild(d);});
-    var lim=10000*bonus();tq=T(function(){ri++;snd('bad');press('"아직도 못 찾았어?"',true);T(function(){unpress();show();},700);},lim);T(function(){press('"빨리!"');},lim*0.5);}
+  function show(){flock=false;if(ri>=rounds.length)return finish(score/rounds.length);var R=rounds[ri];q.textContent='"'+R.q+' 줘!"';inn.innerHTML='<div class="xlbar" style="background:#555">📁 공유폴더 > 팀 > 기획</div>';
+    shuf(R.list).forEach(function(f){var d=h('div','file','<span>'+(f[0].indexOf('.pdf')>0?'📕':f[0].indexOf('.ppt')>0?'📙':f[0].indexOf('.doc')>0?'📘':'📗')+'</span><span>'+f[0]+'</span><span class="dt">수정 '+f[1]+'</span>');d.onclick=function(){if(flock)return;flock=true;clearTimeout(tq);if((f[0]+'|'+f[1])===R.ans){score++;snd('hit');fb('이거다!');}else{snd('bad');fb('그거 아니야!','#c22');press('"그거 아니잖아! 최종본!"',true);}ri++;T(function(){unpress();show();},600);};inn.appendChild(d);});
+    var lim=10000*bonus();tq=T(function(){if(flock)return;flock=true;ri++;snd('bad');press('"아직도 못 찾았어?"',true);T(function(){unpress();show();},700);},lim);T(function(){press('"빨리!"');},lim*0.5);}
   show();
 });
 G.subway=wrap('출근 지옥철','08:41. 이번 열차를 놓치면 지각.\n사람 사이 틈이 빨간 선에 오면 탭!',function(){
@@ -1647,10 +1652,10 @@ G.subway=wrap('출근 지옥철','08:41. 이번 열차를 놓치면 지각.\n사
   var x=0,sp=2.2,ok=0,fail=0,info=h('div','bubble','틈이 빨간 선에 오면 탭! (3번)');info.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:14px;white-space:nowrap';ar.appendChild(info);
   var btn=h('button','btn pri','💨 비집고 들어가기');btn.style.cssText='position:absolute;bottom:12px;left:15%;right:15%';ar.appendChild(btn);
   snd('rumble');I(function(){snd('clack');},1400);I(function(){x-=sp;if(x<-crowd.scrollWidth/2)x=0;crowd.style.left=x+'px';},16);
-  var t0=Date.now();
-  btn.onclick=function(){var cx=mk.getBoundingClientRect().left;var hit=[].some.call(crowd.querySelectorAll('span'),function(g){var b=g.getBoundingClientRect();return cx>b.left+6&&cx<b.right-6;});
-    if(hit){ok++;snd('hit');fb(['한 발!','두 발!','탑승!'][ok-1]||'!');sp+=0.6;if(ok>=3){snd('door');var dt=(Date.now()-t0)/1000;finish(dt<9?1:dt<14?0.7:0.5);}}
-    else{fail++;snd('miss');fb('밀렸다','#c22');press(['"아 밀지 마세요!"','"다음 차 타세요!"','(문이 닫히려 한다)'][Math.min(fail-1,2)],true);}};
+  var t0=Date.now(),cool=0;
+  btn.onclick=function(){if(Date.now()<cool)return;var cx=mk.getBoundingClientRect().left;var hit=[].some.call(crowd.querySelectorAll('span'),function(g){var b=g.getBoundingClientRect();return cx>b.left+6&&cx<b.right-6;});
+    if(hit){ok++;snd('hit');fb(['한 발!','두 발!','탑승!'][ok-1]||'!');sp+=0.6;if(ok>=3){snd('door');var dt=(Date.now()-t0)/1000;finish((dt<9?1:dt<14?0.7:0.5)-fail*0.2);}}
+    else{fail++;cool=Date.now()+900;snd('miss');fb('밀렸다','#c22');press(['"아 밀지 마세요!"','"다음 차 타세요!"','(문이 닫히려 한다)'][Math.min(fail-1,2)],true);}};
   T(function(){finish(ok/3*0.5);},20000*bonus());
 });
 G.baby=wrap('아이 재우기','자장가 박자에 맞춰 토닥토닥.\n박자가 어긋나면 다시 깹니다.',function(){
@@ -1679,7 +1684,7 @@ G.assign=wrap('업무 배분','팀원의 특성을 보고 업무를 맡기세요
   var tasks=[{n:'월말 정산 검토',k:'정산'},{n:'급한 견적서',k:'견적'},{n:'자료 취합',k:'취합'},{n:'대형 PT 준비',k:'PT'},{n:'거래처 저녁 접대',k:'접대'}],sel=null,score=0,cnt=0;
   var info=h('div','bubble','업무를 고르고 → 팀원을 탭');info.style.cssText='position:absolute;top:8px;left:10px;right:10px;font-size:14px';ar.appendChild(info);
   var tw=h('div','grid4');tw.style.marginTop='60px';ar.appendChild(tw);
-  tasks.forEach(function(t){var d=h('div','task',t.n);d.onclick=function(){snd('click');sel={t:t,el:d};[].forEach.call(tw.children,function(x){x.classList.toggle('sel',x===d);});};tw.appendChild(d);});
+  tasks.forEach(function(t){var d=h('div','task',t.n);d.onclick=function(){if(d.classList.contains('done'))return;snd('click');sel={t:t,el:d};[].forEach.call(tw.children,function(x){x.classList.toggle('sel',x===d);});};tw.appendChild(d);});
   var tm=h('div','team');ar.appendChild(tm);
   team.forEach(function(m){var d=h('div','mem','<b>'+m.n+'</b><span class="tg2">'+m.tg+'</span><div class="as"></div>');d.onclick=function(){if(!sel)return;var good=m.ok.indexOf(sel.t.k)>=0;score+=good?1:(m.n==='한과장'&&sel.t.k==='PT'?-0.5:0.2);snd(good?'hit':'miss');fb(good?'적임자!':'음...',good?'#185':'#c22');$('.as',d).innerHTML+='· '+sel.t.n+'<br>';sel.el.classList.add('done');sel.el.classList.remove('sel');sel=null;cnt++;if(cnt>=tasks.length)finish(score/tasks.length);};tm.appendChild(d);});
   var lim=30*bonus(),t0=Date.now();I(function(){setTm(Math.max(0,Math.round(lim-(Date.now()-t0)/1000))+'초');},500);T(function(){press('팀원들: (눈치)');},lim*500);T(function(){finish(score/tasks.length);},lim*1000);
@@ -1688,7 +1693,7 @@ G.schedule=wrap('캘린더 테트리스','회의 5개를 오늘 일정에 넣으
   var mts=[{n:'주간회의',l:1,c:'am'},{n:'고객 미팅',l:2},{n:'1:1 면담',l:1},{n:'임원 보고',l:1,c:'pm'},{n:'교육',l:2}],hrs=[9,10,11,12,13,14,15,16,17],occ={},sel=null,placed=0,score=0;
   var info=h('div','bubble','회의를 고르고 → 시작 시간을 탭 (점심 지키기!)');info.style.cssText='position:absolute;top:8px;left:10px;right:10px;font-size:13px';ar.appendChild(info);
   var row=h('div','');row.style.cssText='display:flex;flex-wrap:wrap;gap:6px;padding:58px 10px 0';ar.appendChild(row);
-  mts.forEach(function(m){var d=h('div','task',m.n+' ('+m.l+'h'+(m.c==='am'?', 오전만':m.c==='pm'?', 오후만':'')+')');d.style.flex='1 1 40%';d.onclick=function(){snd('click');sel={m:m,el:d};[].forEach.call(row.children,function(x){x.classList.toggle('sel',x===d);});};row.appendChild(d);});
+  mts.forEach(function(m){var d=h('div','task',m.n+' ('+m.l+'h'+(m.c==='am'?', 오전만':m.c==='pm'?', 오후만':'')+')');d.style.flex='1 1 40%';d.onclick=function(){if(d.classList.contains('done'))return;snd('click');sel={m:m,el:d};[].forEach.call(row.children,function(x){x.classList.toggle('sel',x===d);});};row.appendChild(d);});
   var cal=h('div','cal');ar.appendChild(cal);
   hrs.forEach(function(hr){cal.appendChild(h('div','',hr+':00'));var s=h('div','slot'+(hr===12?' lunch':''),hr===12?'🍚 점심':'');s.dataset.h=hr;s.onclick=function(){place(hr);};cal.appendChild(s);});
   function slot(hr){return cal.querySelector('[data-h="'+hr+'"]');}
@@ -1699,12 +1704,12 @@ G.schedule=wrap('캘린더 테트리스','회의 5개를 오늘 일정에 넣으
   var lim=40*bonus(),t0=Date.now();I(function(){setTm(Math.max(0,Math.round(lim-(Date.now()-t0)/1000))+'초');},500);T(function(){press('📅 새 회의 초대 3건 도착...');snd('msg');},lim*600);T(function(){finish(score/mts.length);},lim*1000);
 });
 G.approve=wrap('결재','품의서를 보고 승인/반려하세요.\n대충 찍으면 나중에 감사에서 터집니다.',function(){
-  var docs=[],i=0,ok=0,tq,names=['사무용품 구매','거래처 접대비','장비 교체','출장비 정산','외주 용역비','교육비 지원','광고 집행비','서버 증설'];
+  var docs=[],i=0,ok=0,tq,lock=false,names=['사무용품 구매','거래처 접대비','장비 교체','출장비 정산','외주 용역비','교육비 지원','광고 집행비','서버 증설'];
   for(var k=0;k<8;k++){var amt=Math.random()<0.35?rnd(510,1800):rnd(30,490),sign=Math.random()<0.8;docs.push({n:names[k],a:amt,s:sign,ok:amt<=500&&sign});}
   ar.appendChild(h('div','','<div style="background:#ffe76b;margin:10px 14px 0;padding:8px;font-size:13px">📝 <b>반려</b>: 500만원 초과 또는 담당자 서명 없음</div>'));
   var hold=h('div','');ar.appendChild(hold);var gr=h('div','grid4');ar.appendChild(gr);var bA=h('button','btn','✅ 승인'),bR=h('button','btn','❌ 반려');gr.appendChild(bA);gr.appendChild(bR);bA.onclick=function(){dec(true);};bR.onclick=function(){dec(false);};
-  function show(){if(i>=docs.length)return finish(ok/docs.length);var d=docs[i];hold.innerHTML='';hold.appendChild(h('div','doc','<b>품의서 #'+(1040+i)+'</b><br>건명: '+d.n+'<br>금액: <b>'+d.a.toLocaleString()+'만원</b><br>담당자 서명: '+(d.s?'✍️ 김○○':'<span style="color:#c22">(없음)</span>')));snd('page');tq=T(function(){dec(null);},4800*bonus());}
-  function dec(v){clearTimeout(tq);var d=docs[i];var st=h('div','stamp',v===null?'보류':v?'승인':'반려');$('.doc',hold).appendChild(st);snd('stamp');if(v===d.ok)ok++;else fb('어?','#c22');i++;T(show,500);}
+  function show(){lock=false;if(i>=docs.length)return finish(ok/docs.length);var d=docs[i];hold.innerHTML='';hold.appendChild(h('div','doc','<b>품의서 #'+(1040+i)+'</b><br>건명: '+d.n+'<br>금액: <b>'+d.a.toLocaleString()+'만원</b><br>담당자 서명: '+(d.s?'✍️ 김○○':'<span style="color:#c22">(없음)</span>')));snd('page');tq=T(function(){dec(null);},4800*bonus());}
+  function dec(v){if(lock||i>=docs.length)return;lock=true;clearTimeout(tq);var d=docs[i];var st=h('div','stamp',v===null?'보류':v?'승인':'반려');$('.doc',hold).appendChild(st);snd('stamp');if(v===d.ok)ok++;else fb('어?','#c22');i++;T(show,500);}
   show();
 });
 G.budget=wrap('예산 배분','각 본부의 말을 듣고 예산을 나누세요.\n합계는 정확히 100억.',function(){
@@ -1717,7 +1722,7 @@ G.budget=wrap('예산 배분','각 본부의 말을 듣고 예산을 나누세�
   function upd(){[].forEach.call(w.querySelectorAll('.v'),function(e,i){e.textContent=v[i]+'억';});var s=v[0]+v[1]+v[2];tot.textContent='합계 '+s+'억 / 100억';tot.style.color=s===100?'#185':'#c22';} upd();
   function score(){if(v[0]+v[1]+v[2]!==100)return 0.2;var e=0;D.forEach(function(d,i){e+=Math.abs(d.t-v[i]);});return 1-e/60;}
   sub.onclick=function(){finish(score());};
-  var lim=35*bonus(),t0=Date.now();I(function(){setTm(Math.max(0,Math.round(lim-(Date.now()-t0)/1000))+'초');},500);T(function(){press('회장님: "결론이 뭡니까?"',true);},lim*700);T(function(){finish(score()*0.8);},lim*1000);
+  var lim=35*bonus(),t0=Date.now();I(function(){setTm(Math.max(0,Math.round(lim-(Date.now()-t0)/1000))+'초');},500);T(function(){press(ENG.bossName()+': "결론이 뭡니까?"',true);},lim*700);T(function(){finish(score()*0.8);},lim*1000);
 });
 G.negotiate=wrap('단가 협상','"더 깎기"를 누를수록 인하율이 오르지만\n상대 표정이 굳어집니다. 선을 넘으면 결렬.\n적당할 때 합의하세요.',function(){
   var disc=0,anger=0,lim=rnd(55,90),face=h('div','face','🙂');face.style.marginTop='50px';ar.appendChild(face);
@@ -1733,15 +1738,15 @@ G.negotiate=wrap('단가 협상','"더 깎기"를 누를수록 인하율이 오�
 G.pt=wrap('프레젠테이션','목차 → 현황 → 문제 → 해결 → 효과\n순서대로 슬라이드를 넘기세요.',function(){
   var order=['목차','현황 분석','문제 정의','해결 방안','기대 효과'],next=0,err=0,t0=Date.now();
   var info=h('div','bubble','발표 순서대로 슬라이드를 넘기세요');info.style.cssText='position:absolute;top:8px;left:10px;right:10px;font-size:14px';ar.appendChild(info);
-  var aud=h('div','');aud.style.cssText='display:flex;justify-content:center;gap:4px;margin-top:56px';['ceo_0','kim_0','tae_4','ceo_0'].forEach(function(k){var im=h('img','bob');im.src=A(k);im.style.height='70px';aud.appendChild(im);});ar.appendChild(aud);
+  var aud=h('div','');aud.style.cssText='display:flex;justify-content:center;gap:4px;margin-top:56px';(function(){var b=ENG.sprKey('boss',0);return b==='ceo_0'?['jung_0','ceo_0','oh_0']:[b,'ceo_0','jung_0'];})().forEach(function(k){var im=h('img','bob');im.src=A(k);im.style.height='70px';aud.appendChild(im);});ar.appendChild(aud);
   var g=h('div','slides');ar.appendChild(g);
-  shuf(order).forEach(function(s){var d=h('div','slide','📊<br>'+s);d.onclick=function(){if(s===order[next]){d.classList.add('done');next++;snd('page');fb(next+'/5');if(next>=5){var dt=(Date.now()-t0)/1000;finish(1-err*0.15-Math.max(0,dt-8)/30);}}else{err++;snd('miss');press(['임원: (헛기침)','임원: "...순서가 이상한데?"','임원: "다시 처음부터 해보세요."'][Math.min(err-1,2)],true);}};g.appendChild(d);});
+  shuf(order).forEach(function(s){var d=h('div','slide','📊<br>'+s);d.onclick=function(){if(d.classList.contains('done'))return;if(s===order[next]){d.classList.add('done');next++;snd('page');fb(next+'/5');if(next>=5){var dt=(Date.now()-t0)/1000;finish(1-err*0.15-Math.max(0,dt-8)/30);}}else{err++;snd('miss');press(['임원: (헛기침)','임원: "...순서가 이상한데?"','임원: "다시 처음부터 해보세요."'][Math.min(err-1,2)],true);}};g.appendChild(d);});
   T(function(){finish(next/5*0.6);},25000*bonus());
 });
 G.replyall=wrap('전체회신 참사','"이거 누가 기획한 거냐ㅋㅋ"\n→ 수신: 전 직원 1,204명\n\n보내기 취소 버튼을 찾아라!',function(){
-  var labels=['답장','전달','보관','삭제','보내기 취소','인쇄'],t0=Date.now(),box=h('div','');box.style.cssText='position:absolute;inset:60px 10px 10px';ar.appendChild(box);
+  var labels=['답장','전달','보관','삭제','보내기 취소','인쇄'],wrongN=0,t0=Date.now(),box=h('div','');box.style.cssText='position:absolute;inset:60px 10px 10px';ar.appendChild(box);
   var info=h('div','bubble','⚠️ 3초 안에 "보내기 취소"!');info.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:15px;white-space:nowrap';ar.appendChild(info);
-  function lay(){box.innerHTML='';shuf(labels).forEach(function(l){var b=h('button','btn sm',l);b.style.position='absolute';b.style.left=rnd(0,70)+'%';b.style.top=rnd(0,85)+'%';b.onclick=function(){if(l==='보내기 취소'){var dt=(Date.now()-t0)/1000;finish(dt<1.8?1:dt<3.5?0.6:0.3);}else{snd('miss');fb('아니야!!','#c22');}};box.appendChild(b);});}
+  function lay(){box.innerHTML='';shuf(labels).forEach(function(l){var b=h('button','btn sm',l);b.style.position='absolute';b.style.left=rnd(0,70)+'%';b.style.top=rnd(0,85)+'%';b.onclick=function(){if(l==='보내기 취소'){var dt=(Date.now()-t0)/1000;finish((dt<1.8?1:dt<3.5?0.6:0.3)-wrongN*0.2);}else{wrongN++;snd('miss');fb('아니야!!','#c22');}};box.appendChild(b);});}
   lay();I(lay,800);snd('msg');T(function(){press('📨 전송 완료되었습니다.',true);T(function(){finish(0);},900);},3600);
 });
 return {play:play,G:G,force:function(s){finish(s);}};
@@ -2587,7 +2592,7 @@ function playBgm(kind){
 }
 function setBgm(kind){ WANT=kind; if(!kind){stopCur(1.2);log('bgm','off');return;} playBgm(kind); }
 function finished(){var S=ENG.S;return !!(S&&S.retired&&S.deathAge&&S.age>=S.deathAge+(S.lifeAdj||0));}
-function baseKind(){return SYS;}
+function baseKind(){try{if(SYS==='office'&&ENG.S&&ENG.S.track==='jobless')return 'night';}catch(e){}return SYS;}
 var SFX={
   softwarm:function(){var t=ctx.currentTime;ep(sfxBus,N.E5,t,1.2,0.1);ep(sfxBus,N.G5,t+0.16,1.4,0.08);},
   softdown:function(){var t=ctx.currentTime;ep(sfxBus,N.C5,t,0.9,0.09);ep(sfxBus,N.A4,t+0.22,1.2,0.08);},
@@ -2610,11 +2615,11 @@ var SFX={
 var lastFin=0;
 function play(n,a){ if(!on||!C()) return; log('sfx',n); if(SFX[n]) try{SFX[n](a);}catch(e){} else _fx(n,a); }
 function set(s){var o={};s.split(' ').forEach(function(k){o[k]=1;});return o;}
-var GRIEF=set('mom_funeral dad_last r_dad_last dad_things r_dad_things r_spouse_loss f_grave2');
+var GRIEF=set('mom_funeral r_mom dad_last r_dad_last dad_things r_dad_things r_spouse_loss f_grave2');
 var HOSP=set('dad_collapse burnout tae_care health_check r_health');
-var WARM=set('f_baseball f_bath f_grave r_bb2 r_bath2 baby propose propose2 bong_jurye entrance teen r_grand r_bong r_bong_last bong_farewell tae_leave r_last r_spouse farewell dad60 later_date bong_ramen lee_quit r_lee r_mentor hire_back whistle_return jl2 r_choi r_park r_memoir r_pen bong_fishing kid_edu');
+var WARM=set('f_baseball f_bath f_grave r_bb2 r_bath2 baby propose propose2 bong_jurye entrance teen r_grand r_bong r_bong_last bong_farewell tae_leave r_last r_spouse farewell later_date bong_ramen lee_quit r_lee r_mentor hire_back whistle_return jl2 r_choi r_park r_memoir r_pen bong_fishing kid_edu');
 var TENSE=set('restructure fraud oh_gapjil kim_blame kimd_steal rumor exec_race park_mistake choi_mistake bong_claim honorary jl3 stock_tip r_scam friend_loan st2');
-var QUIET=set('jl1 jl4 kimd_fall');
+var QUIET=set('jl1 jl4 kimd_fall dad60');
 var FAKEY={f_baseball:'bb',f_bath:'bath',f_grave:'grave'};
 var TITLE=null;
 function titleMap(){ if(TITLE) return TITLE; TITLE={}; [ENG.EV,ENG.POOL,ENG.RET].forEach(function(arr){(arr||[]).forEach(function(e){if(e&&e.title&&!TITLE[e.title])TITLE[e.title]=e;});}); return TITLE; }
